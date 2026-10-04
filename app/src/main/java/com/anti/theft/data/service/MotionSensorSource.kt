@@ -8,6 +8,7 @@ import android.hardware.SensorManager
 import android.os.Handler
 import android.os.HandlerThread
 import androidx.core.content.getSystemService
+import com.anti.theft.domain.models.MotionSampleModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +19,7 @@ class MotionSensorSource(context: Context) {
 
     private val sensorManager = context.getSystemService<SensorManager>()
 
-    fun samples(): Flow<FloatArray> = callbackFlow {
+    fun samples(): Flow<MotionSampleModel> = callbackFlow {
         val manager = sensorManager
         val sensor = manager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true)
             ?: manager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -29,7 +30,7 @@ class MotionSensorSource(context: Context) {
         val thread = HandlerThread("motion-sensor").apply { start() }
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                trySend(event.values.copyOf(3))
+                trySend(MotionSampleModel(event.values[0], event.values[1], event.values[2], event.timestamp))
             }
 
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit

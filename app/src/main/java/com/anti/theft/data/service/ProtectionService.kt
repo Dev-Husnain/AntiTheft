@@ -15,6 +15,7 @@ import com.anti.theft.core.dispatchers.AppDispatchers
 import com.anti.theft.data.local.ProtectionStateHolder
 import com.anti.theft.domain.detector.ClapDetector
 import com.anti.theft.domain.detector.MotionDetector
+import com.anti.theft.domain.detector.StillnessTracker
 import com.anti.theft.domain.models.AlarmTrigger
 import com.anti.theft.domain.models.ClapState
 import com.anti.theft.domain.models.EffectiveProtectionModel
@@ -210,14 +211,27 @@ class ProtectionService : Service() {
             }
         }
         try {
-            for (secondsLeft in ARMING_SECONDS downTo 1) {
-                stateHolder.update { it.copy(motion = MotionState.Arming(secondsLeft)) }
-                delay(1_000)
-            }
-            stateHolder.update { it.copy(motion = MotionState.Armed) }
-            val detector = MotionDetector(sensitivity)
+            stateHolder.update { it.copy(motion = MotionState.Arming(ARMING_SECONDS)) }
+            val stillness = StillnessTracker(ARMING_SECONDS * 1_000L)
+            var detector: MotionDetector? = null
+            var shownSeconds = ARMING_SECONDS
             withContext(dispatchers.default) {
-                motionSource.samples().first { detector.onSample(it[0], it[1], it[2]) }
+                motionSource.samples().first { sample ->
+                    detector?.let { return@first it.onSample(sample.x, sample.y, sample.z) }
+                    val millisLeft = stillness.onSample(sample.x, sample.y, sample.z, sample.timestampNanos)
+                    val secondsLeft = ((millisLeft + 999) / 1_000).toInt()
+                    when {
+                        secondsLeft == 0 -> {
+                            detector = MotionDetector(sensitivity)
+                            stateHolder.update { it.copy(motion = MotionState.Armed) }
+                        }
+                        secondsLeft != shownSeconds -> {
+                            shownSeconds = secondsLeft
+                            stateHolder.update { it.copy(motion = MotionState.Arming(secondsLeft)) }
+                        }
+                    }
+                    false
+                }
             }
             triggerAlarm(AlarmTrigger.MOTION)
             awaitCancellation()

@@ -211,7 +211,10 @@ Approved at intake (user: "go with your defaults and test on connected device"):
   music; an ablation showed the spectral check is what rejects speech and thuds.
 - Motion detection holds a partial wake lock while armed so the accelerometer keeps
   reporting with the screen off.
-- A 5-second arming countdown follows enabling motion detection and stopping an alarm.
+- Motion arms only after the phone has been continuously still for 5 s (StillnessTracker:
+  linear < 0.5 m/s² and < 5° tilt); any movement restarts the countdown. Replaced the fixed
+  5 s timer after the user reported alarms while putting the phone in a pocket. Applies after
+  enabling and after stopping an alarm.
 - Motion wake lock: 2 h timeout renewed hourly while armed; a separate 10 s wake lock covers
   alarm start-up until MediaPlayer's own wake lock takes over.
 - Pending permission/guard kept in `SavedStateHandle` so a result after process death still
