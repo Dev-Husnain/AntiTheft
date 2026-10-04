@@ -19,6 +19,7 @@ class DeviceCapabilitiesRepositoryImpl(
             hasAccelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null,
             hasMicrophone = context.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE),
             hasProximity = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null,
+            hasLight = sensorManager?.getDefaultSensor(Sensor.TYPE_LIGHT) != null,
             restrictiveManufacturer = RESTRICTIVE_MANUFACTURERS[Build.MANUFACTURER.lowercase()],
         )
     }

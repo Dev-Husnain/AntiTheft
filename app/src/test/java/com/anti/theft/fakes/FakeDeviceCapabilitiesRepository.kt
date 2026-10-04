@@ -8,6 +8,7 @@ class FakeDeviceCapabilitiesRepository(
         hasAccelerometer = true,
         hasMicrophone = true,
         hasProximity = true,
+        hasLight = true,
         restrictiveManufacturer = null,
     ),
 ) : DeviceCapabilitiesRepository {

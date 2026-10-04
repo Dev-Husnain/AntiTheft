@@ -15,35 +15,48 @@ class PocketDetectorTest {
     private val faceDown = Triple(0f, 0f, -g)
     private val seated = Triple(0f, g * 0.6f, g * 0.8f)
 
-    private fun PocketDetector.hold(seconds: Double, orientation: Triple<Float, Float, Float>): List<PocketPhase> =
+    private fun PocketDetector.hold(seconds: Double, orientation: Triple<Float, Float, Float> = upright): List<PocketPhase> =
         List((seconds * 50).toInt()) {
             clock += stepNanos
             onAcceleration(orientation.first, orientation.second, orientation.third, clock)
         }
 
-    private fun PocketDetector.cover(covered: Boolean): PocketPhase = onProximity(covered, clock)
+    private fun PocketDetector.near(near: Boolean) = onProximity(near, clock)
 
-    private fun armedInPocket(): PocketDetector = PocketDetector().apply {
-        hold(0.5, upright)
-        cover(true)
-        hold(3.5, upright)
+    private fun PocketDetector.light(lux: Float) = onLight(lux, clock)
+
+    private fun inRoom() = PocketDetector().apply {
+        near(false)
+        light(250f)
+        hold(0.5)
+    }
+
+    private fun armedWithWorkingProximity() = inRoom().apply {
+        near(true)
+        light(0f)
+        hold(3.5)
+    }
+
+    private fun armedWithStuckProximity() = PocketDetector().apply {
+        near(false)
+        light(250f)
+        hold(0.5)
+        light(1f)
+        hold(3.5)
     }
 
     @Test
-    fun `waits while the sensor is uncovered`() {
-        val detector = PocketDetector()
-        detector.cover(false)
-
-        assertTrue(detector.hold(10.0, upright).all { it == PocketPhase.WaitingForPocket })
+    fun `waits while out in the open`() {
+        assertTrue(inRoom().hold(10.0).all { it == PocketPhase.WaitingForPocket })
     }
 
     @Test
-    fun `arms after three seconds upright in a pocket`() {
-        val detector = PocketDetector()
-        detector.hold(0.5, upright)
-        detector.cover(true)
+    fun `arms after three seconds in a pocket`() {
+        val detector = inRoom()
+        detector.near(true)
+        detector.light(0f)
 
-        val phases = detector.hold(3.5, upright)
+        val phases = detector.hold(3.5)
 
         assertTrue(phases.first() is PocketPhase.Arming)
         assertEquals(PocketPhase.Armed, phases.last())
@@ -51,10 +64,30 @@ class PocketDetectorTest {
     }
 
     @Test
+    fun `works on light alone when the proximity sensor never reports near`() {
+        val detector = armedWithStuckProximity()
+        assertEquals(PocketPhase.Armed, detector.hold(0.1).last())
+
+        detector.light(180f)
+
+        assertEquals(PocketPhase.Triggered, detector.hold(1.2).last())
+    }
+
+    @Test
+    fun `a proximity sensor stuck at far never triggers by itself`() {
+        val detector = armedWithStuckProximity()
+
+        detector.near(false)
+
+        assertTrue(detector.hold(5.0).all { it == PocketPhase.Armed })
+    }
+
+    @Test
     fun `face down on a desk is not a pocket`() {
         val detector = PocketDetector()
         detector.hold(0.5, faceDown)
-        detector.cover(true)
+        detector.near(true)
+        detector.light(0f)
 
         assertTrue(detector.hold(10.0, faceDown).all { it == PocketPhase.WaitingForPocket })
         assertFalse(detector.inPocket)
@@ -62,25 +95,26 @@ class PocketDetectorTest {
 
     @Test
     fun `taking it out while arming starts over`() {
-        val detector = PocketDetector()
-        detector.hold(0.5, upright)
-        detector.cover(true)
-        detector.hold(2.0, upright)
-        detector.cover(false)
-        detector.hold(0.5, upright)
-        detector.cover(true)
+        val detector = inRoom()
+        detector.near(true)
+        detector.light(0f)
+        detector.hold(2.0)
+        detector.near(false)
+        detector.light(250f)
+        detector.hold(0.5)
+        detector.near(true)
+        detector.light(0f)
 
-        val phases = detector.hold(2.0, upright)
-
-        assertTrue(phases.last() is PocketPhase.Arming)
+        assertTrue(detector.hold(2.0).last() is PocketPhase.Arming)
     }
 
     @Test
     fun `pulling the phone out triggers after one second`() {
-        val detector = armedInPocket()
-        detector.cover(false)
+        val detector = armedWithWorkingProximity()
+        detector.near(false)
+        detector.light(300f)
 
-        val phases = detector.hold(1.2, upright)
+        val phases = detector.hold(1.2)
 
         assertEquals(PocketPhase.Armed, phases.first())
         assertEquals(PocketPhase.Triggered, phases.last())
@@ -88,28 +122,45 @@ class PocketDetectorTest {
 
     @Test
     fun `a brief uncover from fabric shifting is ignored`() {
-        val detector = armedInPocket()
-        detector.cover(false)
-        detector.hold(0.4, upright)
-        detector.cover(true)
+        val detector = armedWithWorkingProximity()
+        detector.near(false)
+        detector.light(60f)
+        detector.hold(0.4)
+        detector.near(true)
+        detector.light(0f)
 
-        assertTrue(detector.hold(3.0, upright).all { it == PocketPhase.Armed })
+        assertTrue(detector.hold(3.0).all { it == PocketPhase.Armed })
+    }
+
+    @Test
+    fun `sunlight through thin fabric does not count as taken out`() {
+        val detector = inRoom()
+        detector.near(true)
+        detector.light(12f)
+        detector.hold(3.5)
+
+        detector.light(45f)
+        assertTrue(detector.hold(3.0).all { it == PocketPhase.Armed })
+
+        detector.near(false)
+        detector.light(800f)
+        assertEquals(PocketPhase.Triggered, detector.hold(1.2).last())
     }
 
     @Test
     fun `sitting down with the phone in a pocket keeps it armed`() {
-        val detector = armedInPocket()
-
-        assertTrue(detector.hold(5.0, seated).all { it == PocketPhase.Armed })
+        assertTrue(armedWithWorkingProximity().hold(5.0, seated).all { it == PocketPhase.Armed })
     }
 
     @Test
     fun `stays triggered once triggered`() {
-        val detector = armedInPocket()
-        detector.cover(false)
-        detector.hold(1.2, upright)
-        detector.cover(true)
+        val detector = armedWithWorkingProximity()
+        detector.near(false)
+        detector.light(300f)
+        detector.hold(1.2)
+        detector.near(true)
+        detector.light(0f)
 
-        assertEquals(PocketPhase.Triggered, detector.hold(0.1, upright).last())
+        assertEquals(PocketPhase.Triggered, detector.hold(0.1).last())
     }
 }

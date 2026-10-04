@@ -10,6 +10,7 @@ import com.anti.theft.data.repo.ProtectionRepositoryImpl
 import com.anti.theft.data.repo.SettingsRepositoryImpl
 import com.anti.theft.data.service.AlarmPlayer
 import com.anti.theft.data.service.ChargingMonitor
+import com.anti.theft.data.service.LightSource
 import com.anti.theft.data.service.MicrophoneSource
 import com.anti.theft.data.service.MotionSensorSource
 import com.anti.theft.data.service.ProtectionNotifier
@@ -46,5 +47,6 @@ val appModule = module {
     factoryOf(::MotionSensorSource)
     factoryOf(::MicrophoneSource)
     factoryOf(::ProximitySource)
+    factoryOf(::LightSource)
     factoryOf(::ObserveEffectiveProtectionUseCase)
 }

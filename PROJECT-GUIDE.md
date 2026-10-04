@@ -211,9 +211,14 @@ Approved at intake (user: "go with your defaults and test on connected device"):
   decay to 30 % within 120 ms. Audio source is UNPROCESSED where supported, else
   VOICE_RECOGNITION (no AGC). Unit tests cover claps, speech, a shout, a plosive, a thud and
   music; an ablation showed the spectral check is what rejects speech and thuds.
-- Pocket mode (user-approved scope addition): "in a pocket" = proximity covered **and** not
-  lying flat (gravity < 25° from the screen axis), so a phone face-down on a desk is not a
-  pocket. Arms after 3 s in a pocket; rings after 1 s uncovered (brief fabric shifts ignored).
+- Pocket mode (user-approved scope addition): "in a pocket" = (proximity near **or** ambient
+  light ≤ 5 lux) **and** not lying flat (gravity < 25° from the screen axis), so a phone
+  face-down on a desk is not a pocket. Arms after 3 s in a pocket; rings after 1 s "out"
+  (proximity far, or light ≥ max(20 lux, 8× the in-pocket level)); brief fabric shifts ignored.
+  Proximity is trusted only after it has reported "near" once: the user's Xiaomi has an
+  ultrasound "Elliptic" proximity sensor that never reports to apps outside calls (verified in
+  `dumpsys sensorservice`: one "far" reading, then silence), so it works on light alone there.
+  Known limit: pulling the phone out in a very dark room (< 20 lux) won't register via light.
   The owner stops it with Stop like any alarm. Motion alarm cannot *arm* while in a pocket
   (shows "Paused in pocket"), but an already-armed motion alarm is never paused, so covering
   the sensor while lifting the phone can't defeat it. Each guard holds its own wake lock.

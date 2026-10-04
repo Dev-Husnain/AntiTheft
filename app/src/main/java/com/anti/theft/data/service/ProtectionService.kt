@@ -21,6 +21,7 @@ import com.anti.theft.domain.detector.StillnessTracker
 import com.anti.theft.domain.models.AlarmTrigger
 import com.anti.theft.domain.models.ClapState
 import com.anti.theft.domain.models.EffectiveProtectionModel
+import com.anti.theft.domain.models.LightSampleModel
 import com.anti.theft.domain.models.MotionSampleModel
 import com.anti.theft.domain.models.MotionState
 import com.anti.theft.domain.models.PocketState
@@ -62,6 +63,7 @@ class ProtectionService : Service() {
     private val motionSource: MotionSensorSource by inject()
     private val microphoneSource: MicrophoneSource by inject()
     private val proximitySource: ProximitySource by inject()
+    private val lightSource: LightSource by inject()
     private val observeEffectiveProtection: ObserveEffectiveProtectionUseCase by inject()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, error ->
@@ -258,10 +260,11 @@ class ProtectionService : Service() {
 
     private suspend fun trackPocketPresence() = withContext(dispatchers.default) {
         val detector = PocketDetector()
-        merge(motionSource.samples(), proximitySource.samples()).collect { sample ->
+        merge(motionSource.samples(), proximitySource.samples(), lightSource.samples()).collect { sample ->
             when (sample) {
                 is MotionSampleModel -> detector.onAcceleration(sample.x, sample.y, sample.z, sample.timestampNanos)
                 is ProximitySampleModel -> detector.onProximity(sample.covered, sample.timestampNanos)
+                is LightSampleModel -> detector.onLight(sample.lux, sample.timestampNanos)
             }
             inPocket.value = detector.inPocket
         }
@@ -272,10 +275,11 @@ class ProtectionService : Service() {
         var shown: PocketState = PocketState.WaitingForPocket
         stateHolder.update { it.copy(pocket = shown) }
         withContext(dispatchers.default) {
-            merge(motionSource.samples(), proximitySource.samples()).first { sample ->
+            merge(motionSource.samples(), proximitySource.samples(), lightSource.samples()).first { sample ->
                 val phase = when (sample) {
                     is MotionSampleModel -> detector.onAcceleration(sample.x, sample.y, sample.z, sample.timestampNanos)
                     is ProximitySampleModel -> detector.onProximity(sample.covered, sample.timestampNanos)
+                    is LightSampleModel -> detector.onLight(sample.lux, sample.timestampNanos)
                     else -> return@first false
                 }
                 val state = when (phase) {

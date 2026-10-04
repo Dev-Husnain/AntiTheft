@@ -65,7 +65,7 @@ class ToggleFeatureUseCaseTest {
     @Test
     fun `disabling always succeeds even without permission`() = runTest {
         settings.settings.value = ProtectionSettingsModel(clapEnabled = true)
-        capabilities.model = DeviceCapabilitiesModel(hasAccelerometer = false, hasMicrophone = false, hasProximity = false, restrictiveManufacturer = null)
+        capabilities.model = DeviceCapabilitiesModel(hasAccelerometer = false, hasMicrophone = false, hasProximity = false, hasLight = false, restrictiveManufacturer = null)
 
         val result = toggle(ProtectionFeature.CLAP, false, permissions(microphone = PermissionStatus.DENIED))
 

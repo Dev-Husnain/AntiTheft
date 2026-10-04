@@ -208,8 +208,8 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `pocket mode is unavailable without a proximity sensor`() {
-        capabilities.model = capabilities.model.copy(hasProximity = false)
+    fun `pocket mode is unavailable without proximity or light sensors`() {
+        capabilities.model = capabilities.model.copy(hasProximity = false, hasLight = false)
         val withoutProximity = createViewModel().apply { onEvent(HomeEvent.OnResumed(emptyMap())) }
 
         val pocket = withoutProximity.homeUiState.value.features.first { it.feature == ProtectionFeature.POCKET }

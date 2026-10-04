@@ -3,6 +3,7 @@ package com.anti.theft.domain.detector
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.sqrt
 
 class PocketDetector(
@@ -11,17 +12,28 @@ class PocketDetector(
 ) {
     private val gravity = FloatArray(3)
     private var hasGravity = false
-    private var covered: Boolean? = null
+
+    private var proximityNear: Boolean? = null
+    private var proximityProvenWorking = false
+    private var lux: Float? = null
+    private var pocketLux = 0f
+
     private var pocketSinceNanos: Long? = null
-    private var uncoveredSinceNanos: Long? = null
+    private var outSinceNanos: Long? = null
     private var armed = false
     private var triggered = false
 
     val inPocket: Boolean
-        get() = covered == true && hasGravity && !isFlat()
+        get() = hasGravity && !isFlat() && (proximitySaysCovered() || lightSaysDark())
 
-    fun onProximity(covered: Boolean, timestampNanos: Long): PocketPhase {
-        this.covered = covered
+    fun onProximity(near: Boolean, timestampNanos: Long): PocketPhase {
+        proximityNear = near
+        if (near) proximityProvenWorking = true
+        return evaluate(timestampNanos)
+    }
+
+    fun onLight(lux: Float, timestampNanos: Long): PocketPhase {
+        this.lux = lux
         return evaluate(timestampNanos)
     }
 
@@ -40,21 +52,23 @@ class PocketDetector(
     private fun evaluate(now: Long): PocketPhase {
         if (triggered) return PocketPhase.Triggered
         if (armed) {
-            if (covered == false) {
-                val since = uncoveredSinceNanos ?: now.also { uncoveredSinceNanos = it }
+            if (takenOut()) {
+                val since = outSinceNanos ?: now.also { outSinceNanos = it }
                 if (now - since >= triggerMillis * NANOS_PER_MILLI) {
                     triggered = true
                     return PocketPhase.Triggered
                 }
             } else {
-                uncoveredSinceNanos = null
+                outSinceNanos = null
             }
             return PocketPhase.Armed
         }
         if (!inPocket) {
             pocketSinceNanos = null
+            pocketLux = 0f
             return PocketPhase.WaitingForPocket
         }
+        lux?.let { pocketLux = max(pocketLux, it) }
         val since = pocketSinceNanos ?: now.also { pocketSinceNanos = it }
         val millisLeft = armMillis - (now - since) / NANOS_PER_MILLI
         if (millisLeft <= 0) {
@@ -62,6 +76,16 @@ class PocketDetector(
             return PocketPhase.Armed
         }
         return PocketPhase.Arming(millisLeft)
+    }
+
+    private fun proximitySaysCovered() = proximityProvenWorking && proximityNear == true
+
+    private fun lightSaysDark() = lux?.let { it <= DARK_LUX } == true
+
+    private fun takenOut(): Boolean {
+        val proximityOut = proximityProvenWorking && proximityNear == false
+        val lightOut = lux?.let { it >= max(MIN_OUT_LUX, pocketLux * OUT_LUX_FACTOR) } == true
+        return proximityOut || lightOut
     }
 
     private fun isFlat(): Boolean {
@@ -74,6 +98,9 @@ class PocketDetector(
         const val ALPHA = 0.8f
         const val NANOS_PER_MILLI = 1_000_000L
         const val MIN_GRAVITY_NORM = 1f
+        const val DARK_LUX = 5f
+        const val MIN_OUT_LUX = 20f
+        const val OUT_LUX_FACTOR = 8f
         val FLAT_COS = cos(25.0 * PI / 180.0).toFloat()
     }
 }

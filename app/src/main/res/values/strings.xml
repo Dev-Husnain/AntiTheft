@@ -52,7 +52,7 @@
     <string name="notice_mic_unavailable">The microphone is busy or unavailable. Clap detection will retry when you reopen the app.</string>
     <string name="notice_no_accelerometer">This device has no motion sensor.</string>
     <string name="notice_no_microphone">This device has no microphone.</string>
-    <string name="notice_no_proximity">This device has no proximity sensor.</string>
+    <string name="notice_no_proximity">This device has no proximity or light sensor.</string>
     <string name="notice_pocket_info">Taking your phone out yourself will ring the alarm too. Stop it with the Stop button.</string>
     <string name="notice_motion_pocket">Motion alarm waits while your phone is in a pocket. Use Pocket mode for that.</string>
     <string name="notice_motion_battery">Keeps the motion sensor awake while armed, which uses a little extra battery.</string>
