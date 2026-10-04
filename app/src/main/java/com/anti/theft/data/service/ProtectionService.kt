@@ -65,6 +65,12 @@ class ProtectionService : Service() {
     private val ringing = MutableStateFlow<AlarmTrigger?>(null)
     private val micAllowed = MutableStateFlow(false)
 
+    override fun onCreate() {
+        super.onCreate()
+        // A previous process may have died mid-alarm, leaving its ongoing alarm notification behind.
+        notifier.cancelAlarm()
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -170,8 +176,14 @@ class ProtectionService : Service() {
         }
     }
 
-    private suspend fun watchMotion(sensitivity: Sensitivity) {
-        acquireWakeLock()
+    private suspend fun watchMotion(sensitivity: Sensitivity): Unit = coroutineScope {
+        // Renew well before the timeout so an armed phone keeps sensing with the screen off.
+        val wakeLockRenewal = launch {
+            while (true) {
+                acquireWakeLock()
+                delay(WAKE_LOCK_RENEW_MS)
+            }
+        }
         try {
             // Give the user time to put the phone down (after enabling, or after stopping an alarm).
             for (secondsLeft in ARMING_SECONDS downTo 1) {
@@ -184,6 +196,7 @@ class ProtectionService : Service() {
             triggerAlarm(AlarmTrigger.MOTION)
             awaitCancellation()
         } finally {
+            wakeLockRenewal.cancel()
             releaseWakeLock()
         }
     }
@@ -204,6 +217,10 @@ class ProtectionService : Service() {
 
     private fun triggerAlarm(trigger: AlarmTrigger) {
         if (ringing.value != null) return
+        // Keep the CPU awake until the siren's own wake lock takes over once playback starts.
+        getSystemService<PowerManager>()
+            ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, ALARM_START_WAKE_LOCK_TAG)
+            ?.acquire(ALARM_START_WAKE_LOCK_MS)
         ringing.value = trigger
         stateHolder.update { it.copy(ringing = trigger) }
         alarmPlayer.start()
@@ -223,14 +240,13 @@ class ProtectionService : Service() {
         stopSelf()
     }
 
+    /** Acquires, or extends an already-held lock to a fresh timeout. */
     private fun acquireWakeLock() {
-        if (wakeLock?.isHeld == true) return
-        wakeLock = getSystemService<PowerManager>()
+        val lock = wakeLock ?: getSystemService<PowerManager>()
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOCK_TAG)
-            ?.apply {
-                setReferenceCounted(false)
-                acquire(WAKE_LOCK_TIMEOUT_MS)
-            }
+            ?.apply { setReferenceCounted(false) }
+            ?.also { wakeLock = it }
+        lock?.acquire(WAKE_LOCK_TIMEOUT_MS)
     }
 
     private fun releaseWakeLock() {
@@ -242,9 +258,12 @@ class ProtectionService : Service() {
         const val ARMING_SECONDS = 5
         private const val CLAP_RESUME_DELAY_MS = 800L
         private const val WAKE_LOCK_TAG = "AntiTheft:motion"
+        private const val ALARM_START_WAKE_LOCK_TAG = "AntiTheft:alarmStart"
+        private const val ALARM_START_WAKE_LOCK_MS = 10_000L
 
-        // Re-acquired every time motion re-arms; the cap only guards against a leak.
-        private const val WAKE_LOCK_TIMEOUT_MS = 12 * 60 * 60 * 1000L
+        // The timeout only guards against a leak; the lock is renewed every hour while armed.
+        private const val WAKE_LOCK_TIMEOUT_MS = 2 * 60 * 60 * 1000L
+        private const val WAKE_LOCK_RENEW_MS = 60 * 60 * 1000L
 
         private const val ACTION_START = "com.anti.theft.action.START"
         private const val ACTION_STOP_ALARM = "com.anti.theft.action.STOP_ALARM"

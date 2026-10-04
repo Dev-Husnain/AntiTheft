@@ -1,5 +1,6 @@
 package com.anti.theft.presentation.home
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anti.theft.R
@@ -41,6 +42,7 @@ class HomeViewModel(
     private val toggleFeature: ToggleFeatureUseCase,
     private val resolvePermissions: ResolvePermissionStatusUseCase,
     private val syncProtection: SyncProtectionUseCase,
+    private val savedState: SavedStateHandle,
 ) : ViewModel() {
 
     private val _homeUiState = MutableStateFlow(HomeUiState())
@@ -55,11 +57,22 @@ class HomeViewModel(
 
     private var lastRationale: Map<AppPermission, Boolean> = emptyMap()
 
+    // Both survive process death: Android may kill the app while the permission dialog or
+    // Settings is in front, and the result must still be matched to what the user started.
+
     /** Guard the user tried to enable while its permission was missing. */
-    private var pendingFeature: ProtectionFeature? = null
+    private var pendingFeature: ProtectionFeature?
+        get() = savedState.get<String>(KEY_PENDING_FEATURE)?.let(ProtectionFeature::valueOf)
+        set(value) {
+            savedState[KEY_PENDING_FEATURE] = value?.name
+        }
 
     /** Permission whose system dialog is currently showing. */
-    private var pendingPermission: AppPermission? = null
+    private var pendingPermission: AppPermission?
+        get() = savedState.get<String>(KEY_PENDING_PERMISSION)?.let(AppPermission::valueOf)
+        set(value) {
+            savedState[KEY_PENDING_PERMISSION] = value?.name
+        }
 
     init {
         combine(
@@ -371,5 +384,10 @@ class HomeViewModel(
             messageRes = if (opensSettings) R.string.settings_mic_body else R.string.rationale_mic_body,
             confirmRes = if (opensSettings) R.string.action_open_settings else R.string.rationale_continue,
         )
+    }
+
+    private companion object {
+        const val KEY_PENDING_FEATURE = "pending_feature"
+        const val KEY_PENDING_PERMISSION = "pending_permission"
     }
 }

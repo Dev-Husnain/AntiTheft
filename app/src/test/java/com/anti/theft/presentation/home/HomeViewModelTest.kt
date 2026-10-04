@@ -1,5 +1,6 @@
 package com.anti.theft.presentation.home
 
+import androidx.lifecycle.SavedStateHandle
 import com.anti.theft.domain.models.AlarmTrigger
 import com.anti.theft.domain.models.AppPermission
 import com.anti.theft.domain.models.MotionState
@@ -36,12 +37,17 @@ class HomeViewModelTest {
     private val permissions = FakePermissionRepository(granted = setOf(AppPermission.NOTIFICATIONS))
     private val capabilities = FakeDeviceCapabilitiesRepository()
     private val protection = FakeProtectionRepository()
+    private val savedState = SavedStateHandle()
     private lateinit var viewModel: HomeViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = HomeViewModel(
+        viewModel = createViewModel()
+        viewModel.onEvent(HomeEvent.OnResumed(emptyMap()))
+    }
+
+    private fun createViewModel() = HomeViewModel(
             settings = settings,
             protection = protection,
             capabilities = capabilities,
@@ -51,9 +57,8 @@ class HomeViewModelTest {
                 ObserveEffectiveProtectionUseCase(settings, permissions, capabilities),
                 protection,
             ),
+            savedState = savedState,
         )
-        viewModel.onEvent(HomeEvent.OnResumed(emptyMap()))
-    }
 
     @After
     fun tearDown() {
@@ -136,6 +141,19 @@ class HomeViewModelTest {
         viewModel.onEvent(HomeEvent.OnResumed(emptyMap()))
 
         assertTrue(card(ProtectionFeature.CLAP).checked)
+    }
+
+    @Test
+    fun `permission result after process death still enables the pending guard`() {
+        viewModel.onEvent(HomeEvent.OnFeatureToggled(ProtectionFeature.CLAP, true))
+        viewModel.onEvent(HomeEvent.OnSheetConfirmed)
+
+        // Process dies while the system dialog is showing; a new ViewModel gets the result.
+        val restored = createViewModel()
+        permissions.granted = permissions.granted + AppPermission.MICROPHONE
+        restored.onEvent(HomeEvent.OnPermissionResult(granted = true, rationale = emptyMap()))
+
+        assertTrue(restored.homeUiState.value.features.first { it.feature == ProtectionFeature.CLAP }.checked)
     }
 
     @Test

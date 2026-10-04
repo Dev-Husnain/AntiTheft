@@ -146,9 +146,10 @@ Execution mode: **Hybrid**.
 |---|---|---|
 | 1 | Foundation | Done |
 | 2 | Data & domain layer | Done |
-| 3 | Protection engine — **gate** | Built; charging verified; **motion/clap alarm awaiting human check** |
+| 3 | Protection engine — **gate** | Done; motion + clap alarms confirmed by the user on device |
 | 4 | Home + Alarm screens, Navigation 3 — **gate** (permissions) | Done; permission gate verified on API 31 |
-| 5 | Integration | Not started |
+| 5 | Integration | Done |
+
 | 6 | QA | Not started |
 
 ## 9. Decisions & Assumptions
@@ -171,13 +172,24 @@ Approved at intake (user: "go with your defaults and test on connected device"):
 - Motion detection holds a partial wake lock while armed so the accelerometer keeps
   reporting with the screen off.
 - A 5-second arming countdown follows enabling motion detection and stopping an alarm.
+- Motion wake lock: 2 h timeout renewed hourly while armed; a separate 10 s wake lock covers
+  alarm start-up until MediaPlayer's own wake lock takes over.
+- Pending permission/guard kept in `SavedStateHandle` so a result after process death still
+  completes the user's action.
+- The service clears any stale alarm notification in `onCreate` (left by a process that died
+  mid-alarm).
 - Charging alerts require notification permission (they are notifications). Motion and clap
   do not, but ask once so the alarm's Stop action can appear on the lock screen.
 
 ## 10. Known Gaps / TODO
 
-- Motion and clap alarms, the Alarm screen, the notification Stop action and screen-off
-  behaviour need a human with the phone (gate after milestone 3).
+- Confirmed by the user: motion and clap alarms. Not explicitly confirmed yet: screen-off
+  motion detection and the notification Stop action.
+- MIUI does not restart a crashed sticky service while Autostart is off (observed with
+  `am crash`); protection resumes when the app is next opened. The in-app tip points users to
+  Autostart / battery settings. Sticky restart on stock Android not observed (no device).
+- Process death during the permission dialog is covered by a unit test (SavedStateHandle), not
+  reproduced on device (a process with a foreground service can't be killed via `am kill`).
 - Lint: 4 "newer version available" warnings (Compose BOM, Kotlin, serialization) left on
   purpose — guidelines §5.19 forbid opportunistic upgrades.
 
