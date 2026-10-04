@@ -4,14 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.anti.theft.ui.theme.AntiTheftTheme
+import androidx.compose.ui.res.stringResource
+import com.anti.theft.core.theme.AntiTheftTheme
+import com.anti.theft.core.theme.Dimens
+import com.anti.theft.core.ui.AppTopBar
+import com.anti.theft.core.ui.GradientBackground
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,29 +22,24 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AntiTheftTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    FoundationShell()
                 }
             }
         }
     }
 }
 
+// Temporary until the Home screen lands in milestone 4.
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AntiTheftTheme {
-        Greeting("Android")
+private fun FoundationShell() {
+    GradientBackground(modifier = Modifier.fillMaxSize()) {
+        AppTopBar(
+            title = stringResource(R.string.home_title),
+            subtitle = stringResource(R.string.home_subtitle),
+            modifier = Modifier
+                .safeDrawingPadding()
+                .padding(horizontal = Dimens.SpaceXl),
+        )
     }
 }
