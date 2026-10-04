@@ -58,6 +58,18 @@ The service observes `SettingsRepository` itself, runs one coroutine per enabled
 publishes live state (running, motion arming/armed, clap listening, ringing) to
 `ProtectionStateHolder`, which the ViewModel observes through `ProtectionRepository`.
 
+**Service crash/ANR safety (do not regress).**
+- Every start command calls `startForeground()` synchronously before anything else; if the
+  microphone type is refused it retries without it. A service started with
+  `startForegroundService()` therefore always reaches the foreground in time.
+- Nothing calls `stopService()` (it crashes API 26–30 when it beats `startForeground()`). To
+  stop, `ProtectionRepositoryImpl` sends another start command; the service enters the
+  foreground, re-evaluates (every start forces a fresh evaluation) and stops itself with
+  `stopSelfResult(lastStartId)`, which keeps it alive if a newer start is queued.
+- Each guard runs inside `isolated { }`; a scope `CoroutineExceptionHandler` shuts down cleanly
+  instead of crashing. Sensor maths and audio capture run off the main thread.
+- Stress-tested: rapid on/off toggling on API 31 (device) and API 36 (emulator), no crash/ANR.
+
 **Permissions.** Status is `GRANTED / NOT_REQUESTED / DENIED / PERMANENTLY_DENIED`.
 Permanent denial = previously requested (DataStore flag) + not granted + the activity says
 no rationale should be shown. The screen reports rationale flags on every `ON_RESUME` and
@@ -86,7 +98,7 @@ theme, light icons on the dark theme and on the red alarm screen).
 | AGP (built-in Kotlin) | 9.4.1 | Template |
 | Kotlin | 2.2.10 | Template |
 | Compose BOM | 2026.02.01 | Template (Material 3) |
-| Koin (BOM) — android, androidx-compose | 4.2.2 | **New.** DI (guideline default) |
+| Koin (BOM) — android, androidx-compose | 4.2.2 | **New.** DI (guideline default); `singleOf`/`factoryOf`/`viewModelOf` DSL |
 | DataStore Preferences | 1.2.1 | **New.** Switches, sensitivity, permission-requested flags |
 | lifecycle-runtime-compose / viewmodel-compose | 2.11.0 | **New.** `collectAsStateWithLifecycle`, ViewModel |
 | kotlinx-coroutines-test | 1.11.0 | **New.** Unit tests |
