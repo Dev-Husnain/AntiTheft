@@ -15,11 +15,8 @@ class ClapDetectorTest {
     private val rate = 16_000
     private val random = Random(7)
 
-    // ---- Signal synthesis (all amplitudes are fractions of full scale) ----
-
     private fun silence(ms: Int) = FloatArray(ms * rate / 1000) { (random.nextFloat() * 2 - 1) * 0.003f }
 
-    /** Broadband crack: ~0.5 ms attack, ~12 ms decay, spectrum tilted like a real clap. */
     private fun clap(amplitude: Float = 0.7f): FloatArray {
         val n = 80 * rate / 1000
         var low = 0f
@@ -27,12 +24,11 @@ class ClapDetectorTest {
             val t = i / rate.toFloat()
             val envelope = min(1f, t / 0.0005f) * exp(-t / 0.012f)
             val white = random.nextFloat() * 2 - 1
-            low += 0.55f * (white - low) // gentle low-pass tilt, keeps plenty of energy above 2 kHz
+            low += 0.55f * (white - low)
             (0.5f * white + 0.5f * low) * amplitude * envelope * 1.6f
         }
     }
 
-    /** Voiced syllable: harmonics of [f0] up to ~1.5 kHz with a gradual attack. */
     private fun syllable(amplitude: Float, f0: Double, ms: Int, riseMs: Int): FloatArray {
         val n = ms * rate / 1000
         return FloatArray(n) { i ->
@@ -45,7 +41,6 @@ class ClapDetectorTest {
         }
     }
 
-    /** Phone dropped on a mattress: fast, but almost all energy below 300 Hz. */
     private fun thud(amplitude: Float = 0.9f): FloatArray {
         val n = 120 * rate / 1000
         return FloatArray(n) { i ->
@@ -55,7 +50,6 @@ class ClapDetectorTest {
         }
     }
 
-    /** "Ta!": a 5 ms broadband plosive straight into a loud vowel. */
     private fun plosiveSyllable(): FloatArray {
         val burst = FloatArray(5 * rate / 1000) { (random.nextFloat() * 2 - 1) * 0.35f }
         return burst + syllable(0.85f, 180.0, 180, riseMs = 3)
@@ -77,8 +71,6 @@ class ClapDetectorTest {
         val detector = ClapDetector(sensitivity)
         return frames(*parts).count { detector.onFrame(it) }
     }
-
-    // ---- Claps are caught ----
 
     @Test
     fun `a clap in a quiet room triggers once`() {
@@ -105,8 +97,6 @@ class ClapDetectorTest {
         assertEquals(1, claps(Sensitivity.HIGH, silence(500), clap(0.25f), silence(300)))
         assertEquals(0, claps(Sensitivity.LOW, silence(500), clap(0.25f), silence(300)))
     }
-
-    // ---- Everything else is rejected, even on high sensitivity ----
 
     @Test
     fun `background noise alone never triggers`() {

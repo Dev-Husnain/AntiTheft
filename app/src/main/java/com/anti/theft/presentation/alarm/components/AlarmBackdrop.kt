@@ -22,7 +22,6 @@ import com.anti.theft.core.theme.Color0A0F
 import com.anti.theft.core.theme.ColorB312
 import com.anti.theft.core.theme.ColorFF4D
 
-/** Deep red canvas with a breathing glow. Identical in light and dark themes. */
 @Composable
 fun AlarmBackdrop(
     modifier: Modifier = Modifier,

@@ -8,7 +8,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-/** Explains why a permission is needed before the system dialog (or Settings) is shown. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PermissionRationaleSheet(

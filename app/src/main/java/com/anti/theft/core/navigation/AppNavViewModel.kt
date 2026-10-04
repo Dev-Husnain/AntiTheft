@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-/** App-level navigation state: whether the alarm destination should be on top. */
 class AppNavViewModel(
     protection: ProtectionRepository,
 ) : ViewModel() {

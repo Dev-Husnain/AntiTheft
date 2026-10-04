@@ -24,7 +24,6 @@ import com.anti.theft.R
 import com.anti.theft.core.theme.AntiTheftTheme
 import com.anti.theft.core.theme.Dimens
 
-/** Body of [PermissionRationaleSheet]; separate so it can be previewed. */
 @Composable
 fun PermissionRationaleContent(
     @DrawableRes iconRes: Int,

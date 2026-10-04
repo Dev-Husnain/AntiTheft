@@ -1,6 +1,5 @@
 package com.anti.theft.domain.models
 
-/** What the user switched on, as persisted. */
 data class ProtectionSettingsModel(
     val chargingEnabled: Boolean = false,
     val motionEnabled: Boolean = false,

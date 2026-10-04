@@ -9,10 +9,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-/**
- * Charger plug / unplug events: true = connected. Registered at runtime because Android 8+
- * no longer delivers these implicit broadcasts to manifest receivers.
- */
 class ChargingMonitor(private val context: Context) {
 
     fun events(): Flow<Boolean> = callbackFlow {
@@ -28,7 +24,6 @@ class ChargingMonitor(private val context: Context) {
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
         }
-        // System broadcasts still arrive with RECEIVER_NOT_EXPORTED; other apps can't spoof them.
         ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         awaitClose { context.unregisterReceiver(receiver) }
     }

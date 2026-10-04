@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     val settings: Flow<ProtectionSettingsModel>
 
-    /** Permissions the system dialog has been shown for at least once. */
     val requestedPermissions: Flow<Set<AppPermission>>
 
     val batteryTipDismissed: Flow<Boolean>

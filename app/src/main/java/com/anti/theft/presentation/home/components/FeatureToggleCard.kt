@@ -42,7 +42,6 @@ import com.anti.theft.presentation.home.FeatureUiModel
 import com.anti.theft.presentation.home.NoticeAction
 import com.anti.theft.presentation.home.StatusTone
 
-/** One guard: icon, title, live status, switch, description, sensitivity and any notice. */
 @Composable
 fun FeatureToggleCard(
     model: FeatureUiModel,
@@ -108,7 +107,6 @@ fun FeatureToggleCard(
                     )
                 }
             }
-            // The whole row is the toggle target; the switch only shows the state.
             Switch(
                 checked = model.checked,
                 onCheckedChange = null,

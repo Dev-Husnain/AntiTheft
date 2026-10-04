@@ -16,7 +16,6 @@ class MotionDetectorTest {
 
     private fun noise(amplitude: Float = 0.05f) = (random.nextFloat() * 2 - 1) * amplitude
 
-    /** Feeds samples; true if any of them triggered. */
     private fun MotionDetector.feed(count: Int, sample: (Int) -> Triple<Float, Float, Float>): Boolean {
         var triggered = false
         repeat(count) { i ->
@@ -41,7 +40,6 @@ class MotionDetectorTest {
         val detector = MotionDetector(Sensitivity.MEDIUM)
         detector.restFlat()
 
-        // Tilt 45 degrees over two seconds with almost no linear acceleration.
         val triggered = detector.feed(100) { i ->
             val angle = (i / 100.0) * (PI / 4)
             Triple(noise(), (g * sin(angle)).toFloat(), (g * cos(angle)).toFloat())
@@ -56,7 +54,7 @@ class MotionDetectorTest {
         detector.restFlat()
 
         val triggered = detector.feed(100) { i ->
-            val angle = (i / 100.0) * (PI / 18) // 10 degrees
+            val angle = (i / 100.0) * (PI / 18)
             Triple(noise(), (g * sin(angle)).toFloat(), (g * cos(angle)).toFloat())
         }
 

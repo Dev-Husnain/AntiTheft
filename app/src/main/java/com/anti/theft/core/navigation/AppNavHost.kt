@@ -21,11 +21,6 @@ import com.anti.theft.presentation.alarm.AlarmScreen
 import com.anti.theft.presentation.home.HomeScreen
 import org.koin.compose.viewmodel.koinViewModel
 
-/**
- * The app's only navigation graph. The alarm destination follows the service: it is pushed
- * when the alarm starts ringing (including when the app is opened from the alarm
- * notification) and popped when it stops, whoever stopped it.
- */
 @Composable
 fun AppNavHost(
     modifier: Modifier = Modifier,

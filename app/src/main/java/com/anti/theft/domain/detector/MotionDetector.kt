@@ -5,17 +5,6 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sqrt
 
-/**
- * Decides from raw accelerometer samples (m/s², ~50 Hz) whether the phone was moved.
- *
- * Two signals, either of which counts:
- * - **Shake / bump:** acceleration with gravity removed (low-pass filtered) exceeds a threshold.
- * - **Pick-up / tilt:** the gravity direction rotates away from where it was when armed. This
- *   catches a slow, careful lift that produces almost no linear acceleration.
- *
- * Either must hold for [REQUIRED_CONSECUTIVE] samples in a row so single noisy readings are
- * ignored. Create a new instance each time detection is armed.
- */
 class MotionDetector(sensitivity: Sensitivity) {
 
     private val linearThreshold: Float
@@ -36,7 +25,6 @@ class MotionDetector(sensitivity: Sensitivity) {
     private var samples = 0
     private var consecutive = 0
 
-    /** Returns true once motion is confirmed. */
     fun onSample(x: Float, y: Float, z: Float): Boolean {
         samples++
         if (samples == 1) {
@@ -62,7 +50,6 @@ class MotionDetector(sensitivity: Sensitivity) {
     private fun tiltCos(reference: FloatArray): Float {
         val gNorm = norm(gravity)
         val rNorm = norm(reference)
-        // Free fall (or a broken reading): no usable direction, treat as unchanged.
         if (gNorm < MIN_GRAVITY_NORM || rNorm < MIN_GRAVITY_NORM) return 1f
         val dot = gravity[0] * reference[0] + gravity[1] * reference[1] + gravity[2] * reference[2]
         return dot / (gNorm * rNorm)

@@ -13,7 +13,6 @@ data class HomeUiState(
     val hero: HeroUiModel = HeroUiModel.Off,
     val features: List<FeatureUiModel> = emptyList(),
     val showNotificationsBanner: Boolean = false,
-    /** Manufacturer name for the "keep protection running" tip, or null to hide it. */
     val batteryTipManufacturer: String? = null,
     val permissionSheet: PermissionSheetUiModel? = null,
 )
@@ -34,7 +33,6 @@ data class FeatureUiModel(
     val checked: Boolean,
     val available: Boolean,
     val status: FeatureStatusUiModel? = null,
-    /** Null for guards without a sensitivity setting. */
     val sensitivity: Sensitivity? = null,
     val notice: FeatureNoticeUiModel? = null,
 )
@@ -58,7 +56,6 @@ enum class NoticeAction { FIX_PERMISSION, OPEN_NOTIFICATION_SETTINGS, RETRY }
 
 data class PermissionSheetUiModel(
     val permission: AppPermission,
-    /** True when Android won't show the dialog again and only Settings can fix it. */
     val opensSettings: Boolean,
     @param:DrawableRes val iconRes: Int,
     @param:StringRes val titleRes: Int,

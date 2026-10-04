@@ -2,7 +2,6 @@ package com.anti.theft.core.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Tokens from design/tokens.md, named after the first four hex digits.
 val Color0A0F = Color(0xFF0A0F1F)
 val Color131A = Color(0xFF131A2E)
 val Color1C24 = Color(0xFF1C2440)

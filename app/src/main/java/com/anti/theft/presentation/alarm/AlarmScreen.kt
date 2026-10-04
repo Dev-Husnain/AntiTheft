@@ -28,7 +28,6 @@ fun AlarmScreen(
 ) {
     val uiState by viewModel.alarmUiState.collectAsStateWithLifecycle()
 
-    // The backdrop is dark red in every theme, so status-bar icons are always light.
     SystemBarAppearance(darkIcons = false)
 
     AlarmBackdrop(modifier = modifier.fillMaxSize()) {

@@ -18,16 +18,11 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlin.math.max
 
-/**
- * 20 ms frames of 16 kHz mono PCM from the microphone. Audio is analysed in memory only and
- * never stored. Throws [MicrophoneUnavailableException] if the microphone can't be opened.
- */
 class MicrophoneSource(
     private val context: Context,
     private val dispatchers: AppDispatchers,
 ) {
 
-    // Permission is checked explicitly on the first line of the flow.
     @SuppressLint("MissingPermission")
     fun frames(): Flow<ShortArray> = flow {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) !=
@@ -65,12 +60,6 @@ class MicrophoneSource(
         }
     }.flowOn(dispatchers.io)
 
-    /**
-     * A source without automatic gain control or noise suppression. The default MIC source
-     * often applies AGC, which squashes a shout and a clap to similar levels and smears the
-     * clap's attack. UNPROCESSED is flat to ~7 kHz where supported; VOICE_RECOGNITION is the
-     * guaranteed fallback (no AGC, flat to ~4 kHz).
-     */
     private fun audioSource(): Int {
         val unprocessed = context.getSystemService<AudioManager>()
             ?.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED) == "true"
@@ -79,7 +68,7 @@ class MicrophoneSource(
 
     private companion object {
         const val SAMPLE_RATE = 16_000
-        const val FRAME_SIZE = 320 // 20 ms
+        const val FRAME_SIZE = 320
         const val CHANNEL = AudioFormat.CHANNEL_IN_MONO
         const val ENCODING = AudioFormat.ENCODING_PCM_16BIT
     }

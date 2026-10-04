@@ -18,7 +18,6 @@ import com.anti.theft.core.theme.ColorFBBF
 import com.anti.theft.core.theme.Dimens
 import com.anti.theft.presentation.home.StatusTone
 
-/** Small pill with a coloured dot; text stays on-surface for contrast in both themes. */
 @Composable
 fun StatusChip(
     label: String,

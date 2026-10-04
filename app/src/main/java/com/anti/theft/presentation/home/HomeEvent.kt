@@ -5,7 +5,6 @@ import com.anti.theft.domain.models.ProtectionFeature
 import com.anti.theft.domain.models.Sensitivity
 
 sealed interface HomeEvent {
-    /** Screen resumed; carries the activity's current rationale flags. */
     data class OnResumed(val rationale: Map<AppPermission, Boolean>) : HomeEvent
     data class OnFeatureToggled(val feature: ProtectionFeature, val enabled: Boolean) : HomeEvent
     data class OnSensitivityChanged(val feature: ProtectionFeature, val sensitivity: Sensitivity) : HomeEvent

@@ -20,7 +20,6 @@ class AlarmViewModel(
     init {
         protection.status
             .onEach { status ->
-                // Keep showing the last trigger while the screen animates out after the alarm stops.
                 status.ringing?.let { trigger -> _alarmUiState.update { it.copy(trigger = trigger) } }
             }
             .launchIn(viewModelScope)

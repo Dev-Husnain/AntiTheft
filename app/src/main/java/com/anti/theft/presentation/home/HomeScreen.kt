@@ -63,7 +63,6 @@ fun HomeScreen(
         viewModel.onEvent(HomeEvent.OnPermissionResult(granted, rationale()))
     }
 
-    // Re-check permissions every time the user comes back, e.g. from system Settings.
     LifecycleResumeEffect(viewModel) {
         viewModel.onEvent(HomeEvent.OnResumed(rationale()))
         onPauseOrDispose { }

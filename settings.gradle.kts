@@ -24,4 +24,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "AntiTheft"
 include(":app")
- 

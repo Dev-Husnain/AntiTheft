@@ -26,7 +26,6 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val appModule = module {
-    // Not constructor injection: these are built from platform values and factories.
     single { AppDispatchers(main = Dispatchers.Main, default = Dispatchers.Default, io = Dispatchers.IO) }
     single {
         PreferenceDataStoreFactory.create(
@@ -40,7 +39,6 @@ val appModule = module {
     singleOf(::DeviceCapabilitiesRepositoryImpl) { bind<DeviceCapabilitiesRepository>() }
     singleOf(::ProtectionRepositoryImpl) { bind<ProtectionRepository>() }
 
-    // Protection service collaborators.
     singleOf(::ProtectionNotifier)
     factoryOf(::AlarmPlayer)
     factoryOf(::ChargingMonitor)

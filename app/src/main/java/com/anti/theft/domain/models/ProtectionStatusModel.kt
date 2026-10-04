@@ -1,6 +1,5 @@
 package com.anti.theft.domain.models
 
-/** Live state of the protection service. */
 data class ProtectionStatusModel(
     val serviceRunning: Boolean = false,
     val chargingWatching: Boolean = false,

@@ -17,7 +17,6 @@ class PermissionRepositoryImpl(
     private val notificationManager = NotificationManagerCompat.from(context)
 
     override fun isGranted(permission: AppPermission): Boolean = when (permission) {
-        // Covers both the API 33+ runtime permission and the app-wide switch in Settings.
         AppPermission.NOTIFICATIONS -> notificationManager.areNotificationsEnabled()
         AppPermission.MICROPHONE -> hasPermission(Manifest.permission.RECORD_AUDIO)
     }

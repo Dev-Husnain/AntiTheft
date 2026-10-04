@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Both are optional: the matching guard is disabled on devices without the hardware. -->
     <uses-feature
         android:name="android.hardware.microphone"
         android:required="false" />
@@ -10,15 +9,11 @@
         android:name="android.hardware.sensor.accelerometer"
         android:required="false" />
 
-    <!-- Charging alerts and the alarm's Stop action (runtime permission on API 33+). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Clap detection only; requested when the user turns it on. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- Background protection. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <!-- Keeps the accelerometer reporting with the screen off while motion is armed. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
 

@@ -18,11 +18,6 @@ import androidx.core.content.getSystemService
 import com.anti.theft.R
 import java.io.IOException
 
-/**
- * Loud looping siren on the alarm stream (audible even when ringer and media are muted),
- * plus vibration. Raises alarm volume to max while ringing and restores it afterwards.
- * Must be called from the main thread.
- */
 class AlarmPlayer(private val context: Context) {
 
     private val audioManager = context.getSystemService<AudioManager>()
@@ -37,7 +32,6 @@ class AlarmPlayer(private val context: Context) {
     private var previousAlarmVolume: Int? = null
     private var focusRequest: AudioFocusRequest? = null
 
-    // The alarm must keep sounding even if another app takes audio focus.
     private val focusListener = AudioManager.OnAudioFocusChangeListener { }
 
     val isPlaying: Boolean get() = player != null
@@ -115,7 +109,6 @@ class AlarmPlayer(private val context: Context) {
         try {
             audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, volume, 0)
         } catch (e: SecurityException) {
-            // Some devices refuse while Do Not Disturb is on; the siren still plays at the current volume.
         }
     }
 

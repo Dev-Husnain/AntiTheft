@@ -7,7 +7,6 @@ import com.anti.theft.domain.models.ProtectionFeature
 import com.anti.theft.domain.repo.DeviceCapabilitiesRepository
 import com.anti.theft.domain.repo.SettingsRepository
 
-/** Turns a guard on or off, refusing to enable it without its hardware or permission. */
 class ToggleFeatureUseCase(
     private val settings: SettingsRepository,
     private val capabilities: DeviceCapabilitiesRepository,
@@ -33,7 +32,6 @@ class ToggleFeatureUseCase(
     }
 }
 
-/** Charging alerts are notifications; clap detection needs the microphone. */
 fun ProtectionFeature.requiredPermission(): AppPermission? = when (this) {
     ProtectionFeature.CHARGING -> AppPermission.NOTIFICATIONS
     ProtectionFeature.MOTION -> null

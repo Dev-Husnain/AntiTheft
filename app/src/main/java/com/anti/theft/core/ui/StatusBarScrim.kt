@@ -11,10 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
-/**
- * Translucent strip behind the status bar so its icons stay legible while content scrolls
- * underneath. Exactly as tall as the status bar inset.
- */
 @Composable
 fun StatusBarScrim(
     modifier: Modifier = Modifier,

@@ -135,7 +135,7 @@ class HomeViewModelTest {
         settings.requestedPermissions.value = setOf(AppPermission.MICROPHONE)
         viewModel.onEvent(HomeEvent.OnResumed(emptyMap()))
         viewModel.onEvent(HomeEvent.OnFeatureToggled(ProtectionFeature.CLAP, true))
-        viewModel.onEvent(HomeEvent.OnSheetConfirmed) // opens Settings
+        viewModel.onEvent(HomeEvent.OnSheetConfirmed)
 
         permissions.granted = permissions.granted + AppPermission.MICROPHONE
         viewModel.onEvent(HomeEvent.OnResumed(emptyMap()))
@@ -148,7 +148,6 @@ class HomeViewModelTest {
         viewModel.onEvent(HomeEvent.OnFeatureToggled(ProtectionFeature.CLAP, true))
         viewModel.onEvent(HomeEvent.OnSheetConfirmed)
 
-        // Process dies while the system dialog is showing; a new ViewModel gets the result.
         val restored = createViewModel()
         permissions.granted = permissions.granted + AppPermission.MICROPHONE
         restored.onEvent(HomeEvent.OnPermissionResult(granted = true, rationale = emptyMap()))

@@ -16,10 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.anti.theft.core.theme.AntiTheftTheme
 
-/**
- * Concentric rings radiating from the centre. When [animate] is false the rings are drawn
- * still, which is used for idle states.
- */
 @Composable
 fun PulseRings(
     color: Color,
@@ -37,7 +33,6 @@ fun PulseRings(
     )
     Canvas(modifier = modifier) {
         val maxRadius = size.minDimension / 2
-        // Reading the animated value here (draw phase) avoids recomposing every frame.
         val base = if (animate) progress.value else 0f
         repeat(rings) { index ->
             val phase = if (animate) (base + index.toFloat() / rings) % 1f else (index + 1f) / (rings + 1)

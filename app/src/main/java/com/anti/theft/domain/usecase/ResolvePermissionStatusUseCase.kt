@@ -7,10 +7,6 @@ import com.anti.theft.domain.repo.PermissionRepository
 import com.anti.theft.domain.repo.SettingsRepository
 import kotlinx.coroutines.flow.first
 
-/**
- * Works out each permission's status. Android only reports "granted" and "should show
- * rationale", so permanent denial is inferred: asked before, not granted, and no rationale.
- */
 class ResolvePermissionStatusUseCase(
     private val permissions: PermissionRepository,
     private val settings: SettingsRepository,

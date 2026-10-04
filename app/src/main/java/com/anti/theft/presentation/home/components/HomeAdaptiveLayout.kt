@@ -24,12 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.anti.theft.core.theme.AntiTheftTheme
 import com.anti.theft.core.theme.Dimens
 
-/**
- * Home's responsive frame. Below [Dimens.ExpandedBreakpoint] everything stacks in one
- * scrolling column; at or above it (tablets, unfolded foldables, landscape) the hero sits in a
- * left pane and the guards scroll independently on the right. Safe-drawing insets (status bar,
- * navigation bar, display cutout) are applied here once, to the content only.
- */
 @Composable
 fun HomeAdaptiveLayout(
     header: @Composable () -> Unit,

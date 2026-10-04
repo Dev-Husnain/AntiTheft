@@ -9,10 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-/**
- * Which guards can actually run. Permissions are read when settings change; a revoked
- * runtime permission kills the process, so a stale "granted" can't outlive it.
- */
 class ObserveEffectiveProtectionUseCase(
     private val settings: SettingsRepository,
     private val permissions: PermissionRepository,

@@ -1,12 +1,10 @@
 <resources>
     <string name="app_name">Anti-Theft</string>
 
-    <!-- Home header -->
     <string name="home_title">Anti-Theft Alarm</string>
     <string name="home_subtitle">Your phone, guarded</string>
     <string name="home_section_guards">Guards</string>
 
-    <!-- Status hero -->
     <string name="hero_off_title">Protection off</string>
     <string name="hero_off_body">Turn on a guard below to start protecting your phone.</string>
     <string name="hero_protected_title">Protected</string>
@@ -22,7 +20,6 @@
     <string name="hero_ringing_title">Alarm!</string>
     <string name="cd_status_shield">Protection status</string>
 
-    <!-- Features -->
     <string name="feature_charging_title">Charging alerts</string>
     <string name="feature_charging_body">Get notified the moment your charger is connected or unplugged.</string>
     <string name="feature_motion_title">Motion alarm</string>
@@ -41,7 +38,6 @@
     <string name="sensitivity_medium">Medium</string>
     <string name="sensitivity_high">High</string>
 
-    <!-- Card notices -->
     <string name="notice_notifications_needed">Allow notifications so charging alerts can reach you.</string>
     <string name="notice_notifications_blocked">Notifications are blocked, so charging alerts can\'t be shown.</string>
     <string name="notice_charging_channel_blocked">Charging alert notifications are turned off for this app.</string>
@@ -59,15 +55,12 @@
     <string name="action_turn_on">Turn on</string>
     <string name="action_retry">Try again</string>
 
-    <!-- Notifications banner -->
     <string name="banner_notifications_title">Notifications are off</string>
     <string name="banner_notifications_body">You won\'t see charging alerts, or the alarm\'s Stop button on the lock screen.</string>
 
-    <!-- Background restriction tip -->
     <string name="tip_battery_title">Keep protection running</string>
     <string name="tip_battery_body">%1$s phones can stop background apps. In Settings, allow Autostart and set Battery saver to “No restrictions” for Anti-Theft.</string>
 
-    <!-- Permission sheets -->
     <string name="rationale_notifications_title">Stay in the loop</string>
     <string name="rationale_notifications_body">Anti-Theft uses notifications to tell you when your charger is connected or unplugged, and to let you stop the alarm from the lock screen.</string>
     <string name="rationale_mic_title">Let us hear claps</string>
@@ -79,7 +72,6 @@
     <string name="rationale_continue">Continue</string>
     <string name="rationale_not_now">Not now</string>
 
-    <!-- Alarm overlay -->
     <string name="alarm_title">Alarm triggered</string>
     <string name="alarm_reason_motion">Motion detected</string>
     <string name="alarm_reason_clap">Clap detected</string>
@@ -87,11 +79,9 @@
     <string name="alarm_body_clap">A clap was heard while clap detection was on.</string>
     <string name="alarm_stop">Stop alarm</string>
 
-    <!-- Snackbar messages -->
     <string name="msg_start_failed">Couldn\'t start protection. Open the app again to retry.</string>
     <string name="msg_unsupported">This feature isn\'t supported on this device.</string>
 
-    <!-- Notifications -->
     <string name="channel_protection_name">Protection status</string>
     <string name="channel_protection_description">Shown while Anti-Theft is guarding your phone.</string>
     <string name="channel_charging_name">Charging alerts</string>

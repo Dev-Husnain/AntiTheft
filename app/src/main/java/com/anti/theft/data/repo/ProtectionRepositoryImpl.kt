@@ -17,9 +17,6 @@ class ProtectionRepositoryImpl(
     override val status: StateFlow<ProtectionStatusModel> = stateHolder.protectionStatusState
 
     override fun apply(protection: EffectiveProtectionModel): Result<Unit> {
-        // Never stopService(): if it lands before the service has called startForeground()
-        // (a quick on→off toggle), API 26-30 crash the app. Instead the service is told to
-        // re-check; it enters the foreground and then stops itself because nothing is active.
         val serviceMayBeAlive = stateHolder.startRequested || status.value.serviceRunning
         if (!protection.anyActive && !serviceMayBeAlive) return Result.success(Unit)
         return try {
@@ -27,7 +24,6 @@ class ProtectionRepositoryImpl(
             stateHolder.startRequested = true
             Result.success(Unit)
         } catch (e: IllegalStateException) {
-            // ForegroundServiceStartNotAllowedException (API 31+) or background start limits (API 26+).
             Result.failure(e)
         }
     }
@@ -37,7 +33,6 @@ class ProtectionRepositoryImpl(
         try {
             context.startService(ProtectionService.stopAlarmIntent(context))
         } catch (e: IllegalStateException) {
-            // Not reachable while the foreground service is running; nothing to stop otherwise.
         }
     }
 }

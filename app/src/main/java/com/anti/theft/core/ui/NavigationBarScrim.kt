@@ -11,10 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
-/**
- * Translucent strip behind the navigation bar so three-button navigation stays legible over
- * scrolling content. With gesture navigation the inset is only the handle's height.
- */
 @Composable
 fun NavigationBarScrim(
     modifier: Modifier = Modifier,

@@ -25,7 +25,6 @@ class DeviceCapabilitiesRepositoryImpl(
     override fun capabilities(): DeviceCapabilitiesModel = capabilities
 
     private companion object {
-        // Vendors whose default battery management kills foreground services (dontkillmyapp.com).
         val RESTRICTIVE_MANUFACTURERS = mapOf(
             "xiaomi" to "Xiaomi",
             "redmi" to "Redmi",

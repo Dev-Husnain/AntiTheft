@@ -45,25 +45,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-/**
- * Foreground service that runs whichever guards are switched on, one coroutine each, and
- * publishes live state to [ProtectionStateHolder].
- *
- * Crash and ANR safety rules (see PROJECT-GUIDE §3):
- * - Every start command calls `startForeground()` first, synchronously, before any other
- *   work. If the microphone type is refused it retries without it, so a service started with
- *   `startForegroundService()` always reaches the foreground well inside Android's 5/10 s limit.
- * - Nobody calls `stopService()`. To stop, the UI sends another start command; the service
- *   enters the foreground, re-reads settings and then stops itself with `stopSelfResult()`,
- *   which keeps the service alive if a newer start is already queued.
- * - Each guard is isolated: a failing sensor or microphone stops only that guard. A scope
- *   exception handler catches anything else and shuts down cleanly instead of crashing.
- * - The main thread only does bookkeeping; sensor math runs on the default dispatcher and audio
- *   capture on IO.
- *
- * After a system-initiated sticky restart the microphone is not allowed (Android 11+), so clap
- * detection reports [ClapState.PAUSED_IN_BACKGROUND] until the app is opened again.
- */
 class ProtectionService : Service() {
 
     private val dispatchers: AppDispatchers by inject()
@@ -88,12 +69,10 @@ class ProtectionService : Service() {
     private val ringing = MutableStateFlow<AlarmTrigger?>(null)
     private val micAllowed = MutableStateFlow(false)
 
-    /** Bumped by every start command so settings and permissions are re-evaluated. */
     private val refresh = MutableStateFlow(0)
 
     override fun onCreate() {
         super.onCreate()
-        // A previous process may have died mid-alarm, leaving its ongoing alarm notification behind.
         notifier.cancelAlarm()
     }
 
@@ -102,19 +81,15 @@ class ProtectionService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lastStartId = startId
         if (intent?.action == ACTION_STOP_ALARM) {
-            // Sent with startService() from the notification, so no foreground obligation here.
             stopAlarm()
             if (protectionJob == null) stopSelfResult(startId)
             return START_STICKY
         }
 
-        // ACTION_START from the UI, or a null intent when the system restarts a sticky service.
         val fromUi = intent?.action == ACTION_START
         val wantsMicrophone = fromUi && intent.getBooleanExtra(EXTRA_CLAP, false)
         val microphoneIncluded = enterForeground(wantsMicrophone)
         if (microphoneIncluded == null) {
-            // Only reachable when Android refuses the foreground outright, which happens for a
-            // background restart (not a startForegroundService() call), so stopping is safe.
             stopSelfResult(startId)
             return START_NOT_STICKY
         }
@@ -133,10 +108,6 @@ class ProtectionService : Service() {
         super.onDestroy()
     }
 
-    /**
-     * Enters the foreground. Returns whether the microphone type was included, or null if the
-     * service could not enter the foreground at all.
-     */
     private fun enterForeground(wantsMicrophone: Boolean): Boolean? = when {
         wantsMicrophone && tryStartForeground(includeMicrophone = true) -> true
         tryStartForeground(includeMicrophone = false) -> false
@@ -152,8 +123,6 @@ class ProtectionService : Service() {
         )
         true
     } catch (e: RuntimeException) {
-        // ForegroundServiceStartNotAllowedException / ForegroundServiceTypeException (both
-        // IllegalStateException) or SecurityException when a type's permission isn't usable now.
         Log.w(TAG, "startForeground refused (microphone=$includeMicrophone): ${e.javaClass.simpleName}")
         false
     }
@@ -172,8 +141,6 @@ class ProtectionService : Service() {
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun runProtection() = coroutineScope {
         stateHolder.update { it.copy(serviceRunning = true) }
-        // Every start command re-subscribes, so each one yields a fresh evaluation even when the
-        // result is unchanged; otherwise a "re-check and stop" request could be silently ignored.
         val evaluations = refresh.flatMapLatest { observeEffectiveProtection() }
         val protection: StateFlow<EffectiveProtectionModel> = evaluations.stateIn(this)
         val isRinging = ringing.map { it != null }.distinctUntilChanged()
@@ -216,7 +183,6 @@ class ProtectionService : Service() {
         }
     }
 
-    /** Runs one guard so that its failure stops only that guard, never the service. */
     private suspend inline fun isolated(guard: String, block: () -> Unit) {
         try {
             block()
@@ -237,7 +203,6 @@ class ProtectionService : Service() {
     }
 
     private suspend fun watchMotion(sensitivity: Sensitivity): Unit = coroutineScope {
-        // Renew well before the timeout so an armed phone keeps sensing with the screen off.
         val wakeLockRenewal = launch {
             while (true) {
                 acquireWakeLock()
@@ -245,14 +210,12 @@ class ProtectionService : Service() {
             }
         }
         try {
-            // Give the user time to put the phone down (after enabling, or after stopping an alarm).
             for (secondsLeft in ARMING_SECONDS downTo 1) {
                 stateHolder.update { it.copy(motion = MotionState.Arming(secondsLeft)) }
                 delay(1_000)
             }
             stateHolder.update { it.copy(motion = MotionState.Armed) }
             val detector = MotionDetector(sensitivity)
-            // ~50 samples a second: keep the maths off the main thread.
             withContext(dispatchers.default) {
                 motionSource.samples().first { detector.onSample(it[0], it[1], it[2]) }
             }
@@ -265,7 +228,6 @@ class ProtectionService : Service() {
     }
 
     private suspend fun listenForClaps(sensitivity: Sensitivity) {
-        // Let the end of a just-stopped siren die away before listening.
         delay(CLAP_RESUME_DELAY_MS)
         stateHolder.update { it.copy(clap = ClapState.LISTENING) }
         try {
@@ -282,7 +244,6 @@ class ProtectionService : Service() {
 
     private fun triggerAlarm(trigger: AlarmTrigger) {
         if (ringing.value != null) return
-        // Keep the CPU awake until the siren's own wake lock takes over once playback starts.
         getSystemService<PowerManager>()
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, ALARM_START_WAKE_LOCK_TAG)
             ?.acquire(ALARM_START_WAKE_LOCK_MS)
@@ -302,12 +263,9 @@ class ProtectionService : Service() {
     private fun shutDown() {
         stopAlarm()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-        // False when a newer start command is queued: that command re-enters the foreground and
-        // re-evaluates settings, so the service simply carries on.
         stopSelfResult(lastStartId)
     }
 
-    /** Acquires, or extends an already-held lock to a fresh timeout. */
     private fun acquireWakeLock() {
         val lock = wakeLock ?: getSystemService<PowerManager>()
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOCK_TAG)
@@ -329,7 +287,6 @@ class ProtectionService : Service() {
         private const val ALARM_START_WAKE_LOCK_TAG = "AntiTheft:alarmStart"
         private const val ALARM_START_WAKE_LOCK_MS = 10_000L
 
-        // The timeout only guards against a leak; the lock is renewed every hour while armed.
         private const val WAKE_LOCK_TIMEOUT_MS = 2 * 60 * 60 * 1000L
         private const val WAKE_LOCK_RENEW_MS = 60 * 60 * 1000L
 

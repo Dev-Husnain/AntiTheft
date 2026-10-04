@@ -28,7 +28,6 @@ import com.anti.theft.core.theme.ColorFFFF
 import com.anti.theft.core.theme.Dimens
 import com.anti.theft.domain.models.AlarmTrigger
 
-/** Alarm icon, title and what triggered it. Text colours are fixed for the red backdrop. */
 @Composable
 fun AlarmHeadline(
     trigger: AlarmTrigger?,

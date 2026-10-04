@@ -21,7 +21,6 @@ object Dimens {
     val MinTouchTarget = 48.dp
     val ButtonHeight = 52.dp
 
-    /** Width at which Home switches from one column to two panes. */
     val ExpandedBreakpoint = 600.dp
     val ContentMaxWidth = 1040.dp
 

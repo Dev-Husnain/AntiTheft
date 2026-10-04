@@ -25,7 +25,6 @@ import com.anti.theft.core.theme.ColorFFFF
 import com.anti.theft.core.theme.Dimens
 import com.anti.theft.core.ui.PulseRings
 
-/** Large round Stop button with pulsing rings, sized for a panicked thumb. */
 @Composable
 fun StopAlarmButton(
     onClick: () -> Unit,

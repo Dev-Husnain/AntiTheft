@@ -23,7 +23,6 @@ import com.anti.theft.R
 import com.anti.theft.core.theme.AntiTheftTheme
 import com.anti.theft.core.theme.Dimens
 
-/** Brand header: gradient shield mark, title and subtitle. */
 @Composable
 fun AppTopBar(
     title: String,

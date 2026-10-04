@@ -44,7 +44,6 @@ import com.anti.theft.core.ui.PulseRings
 import com.anti.theft.domain.models.AlarmTrigger
 import com.anti.theft.presentation.home.HeroUiModel
 
-/** The animated shield that summarises protection status, with its call to action. */
 @Composable
 fun ProtectionStatusHero(
     hero: HeroUiModel,

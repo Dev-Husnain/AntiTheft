@@ -57,17 +57,12 @@ class HomeViewModel(
 
     private var lastRationale: Map<AppPermission, Boolean> = emptyMap()
 
-    // Both survive process death: Android may kill the app while the permission dialog or
-    // Settings is in front, and the result must still be matched to what the user started.
-
-    /** Guard the user tried to enable while its permission was missing. */
     private var pendingFeature: ProtectionFeature?
         get() = savedState.get<String>(KEY_PENDING_FEATURE)?.let(ProtectionFeature::valueOf)
         set(value) {
             savedState[KEY_PENDING_FEATURE] = value?.name
         }
 
-    /** Permission whose system dialog is currently showing. */
     private var pendingPermission: AppPermission?
         get() = savedState.get<String>(KEY_PENDING_PERMISSION)?.let(AppPermission::valueOf)
         set(value) {
@@ -118,7 +113,6 @@ class HomeViewModel(
         lastRationale = rationale
         viewModelScope.launch {
             val permissions = refreshPermissions()
-            // Back from Settings with the missing permission now granted: finish what the user started.
             val feature = pendingFeature
             val required = feature?.requiredPermission()
             if (feature != null && required != null && pendingPermission == null &&
@@ -143,7 +137,6 @@ class HomeViewModel(
         when (val result = toggleFeature(feature, enabled, permissions)) {
             ToggleResult.Enabled -> {
                 runSync()
-                // Motion works without notifications, but its Stop action needs them; ask once.
                 if (feature == ProtectionFeature.MOTION && permissions.notifications == PermissionStatus.NOT_REQUESTED) {
                     _permissionSheetState.value = sheetFor(AppPermission.NOTIFICATIONS, opensSettings = false)
                 }

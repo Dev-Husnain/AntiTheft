@@ -26,7 +26,6 @@ import com.anti.theft.core.theme.AntiTheftTheme
 import com.anti.theft.core.theme.ColorFBBF
 import com.anti.theft.core.theme.Dimens
 
-/** A tinted callout with an optional action and dismiss button. */
 @Composable
 fun InlineNotice(
     message: String,
@@ -46,7 +45,6 @@ fun InlineNotice(
         NoticeTone.Warning -> ColorFBBF
         NoticeTone.Error -> MaterialTheme.colorScheme.error
     }
-    // Amber text is unreadable on light surfaces, so warnings use on-surface text there.
     val actionColor = if (tone == NoticeTone.Warning && MaterialTheme.colorScheme.surface.luminance() > 0.5f) {
         MaterialTheme.colorScheme.onSurface
     } else {

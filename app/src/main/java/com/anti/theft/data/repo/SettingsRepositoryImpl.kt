@@ -21,7 +21,6 @@ class SettingsRepositoryImpl(
     private val dataStore: DataStore<Preferences>,
 ) : SettingsRepository {
 
-    // A corrupt or unreadable file falls back to defaults (everything off) instead of crashing.
     private val preferences: Flow<Preferences> = dataStore.data.catch { e ->
         if (e is IOException) emit(emptyPreferences()) else throw e
     }

@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.anti.theft.core.theme.AntiTheftTheme
 
-/** Screen canvas: theme background with two soft radial glows. */
 @Composable
 fun GradientBackground(
     modifier: Modifier = Modifier,

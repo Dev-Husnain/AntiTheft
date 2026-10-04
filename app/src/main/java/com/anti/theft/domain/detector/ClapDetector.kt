@@ -8,23 +8,6 @@ import kotlin.math.max
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-/**
- * Detects a hand clap in a stream of 16-bit mono PCM frames (~20 ms each).
- *
- * Loudness alone can't separate a clap from a shout or a thud, so a candidate sound must pass
- * all of these:
- * 1. **Loud onset** — peak above the sensitivity threshold and RMS well above the adaptive
- *    background level.
- * 2. **Sharp attack** — reaches full level within [MAX_RISE_MS]. A clap is a near-instant crack;
- *    a spoken syllable builds up over 10–40 ms.
- * 3. **Broadband** — at least a sensitivity-dependent share of its energy above
- *    [HIGH_PASS_HZ]. Claps are noise-like across the spectrum; voiced speech sits mostly
- *    below 1 kHz and thuds (a phone dropped on a mattress) below a few hundred Hz.
- * 4. **Short** — falls to [DECAY_RATIO] of its peak within [MAX_EVENT_FRAMES] frames. Vowels,
- *    music and machinery stay loud and are rejected; the background level adapts to them.
- *
- * After a clap, [COOLDOWN_FRAMES] frames are ignored so its echo doesn't count twice.
- */
 class ClapDetector(
     sensitivity: Sensitivity,
     sampleRate: Int = 16_000,
@@ -57,14 +40,12 @@ class ClapDetector(
     private var cooldown = 0
     private var previousFrame = ShortArray(0)
 
-    // Current candidate event.
     private var eventFrames = 0
     private var eventPeakRms = 0f
     private var eventHighEnergy = 0.0
     private var eventTotalEnergy = 0.0
     private var eventSharpAttack = false
 
-    /** Returns true when the frame completes a clap. */
     fun onFrame(buffer: ShortArray, length: Int = buffer.size): Boolean {
         if (length <= 0) return false
 
@@ -131,11 +112,6 @@ class ClapDetector(
         return clap
     }
 
-    /**
-     * Milliseconds from the last quiet moment (< [RISE_FLOOR] of the peak) to the loudest 1 ms
-     * block, looking across the previous and current frames. Large when there was no quiet
-     * moment at all, i.e. the sound didn't start abruptly.
-     */
     private fun riseTimeMs(previous: ShortArray, current: ShortArray, length: Int): Int {
         val blockSize = samplesPerMs
         val totalSamples = previous.size + length
@@ -163,7 +139,6 @@ class ClapDetector(
         noiseFloor = max(MIN_FLOOR, noiseFloor * (1 - FLOOR_RATE) + rms * FLOOR_RATE)
     }
 
-    /** RBJ biquad high-pass, Q = 1/√2. State persists across frames. */
     private class HighPassFilter(cutoffHz: Double, sampleRate: Int) {
         private val b0: Double
         private val b1: Double
@@ -202,10 +177,10 @@ class ClapDetector(
         const val MIN_FLOOR = 0.002f
         const val FLOOR_RATE = 0.05f
         const val DECAY_RATIO = 0.3f
-        const val MAX_EVENT_FRAMES = 6 // 120 ms
-        const val SPECTRUM_FRAMES = 2 // spectrum judged on the first 40 ms
+        const val MAX_EVENT_FRAMES = 6
+        const val SPECTRUM_FRAMES = 2
         const val MAX_RISE_MS = 6
         const val RISE_FLOOR = 0.2
-        const val COOLDOWN_FRAMES = 15 // 300 ms
+        const val COOLDOWN_FRAMES = 15
     }
 }

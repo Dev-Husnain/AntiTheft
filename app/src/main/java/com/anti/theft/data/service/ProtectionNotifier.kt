@@ -18,13 +18,11 @@ import com.anti.theft.core.constants.NotificationIds
 import com.anti.theft.domain.models.AlarmTrigger
 import com.anti.theft.domain.models.EffectiveProtectionModel
 
-/** Notification channels and every notification the app posts. */
 class ProtectionNotifier(private val context: Context) {
 
     private val manager = NotificationManagerCompat.from(context)
     private val accent = ContextCompat.getColor(context, R.color.color_4F7C)
 
-    /** Safe to call repeatedly; existing channels keep the user's own settings. */
     fun createChannels() {
         manager.createNotificationChannelsCompat(
             listOf(
@@ -37,7 +35,6 @@ class ProtectionNotifier(private val context: Context) {
                     .setName(context.getString(R.string.channel_charging_name))
                     .setDescription(context.getString(R.string.channel_charging_description))
                     .build(),
-                // Silent: AlarmPlayer produces the sound and vibration itself.
                 NotificationChannelCompat.Builder(NotificationChannels.ALARM, NotificationManagerCompat.IMPORTANCE_HIGH)
                     .setName(context.getString(R.string.channel_alarm_name))
                     .setDescription(context.getString(R.string.channel_alarm_description))
@@ -134,7 +131,6 @@ class ProtectionNotifier(private val context: Context) {
         )
     }
 
-    // Permission and app-level switch are checked just before posting.
     @SuppressLint("MissingPermission")
     private fun notify(id: Int, notification: Notification) {
         if (canPost()) manager.notify(id, notification)
