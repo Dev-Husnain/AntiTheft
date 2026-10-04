@@ -99,38 +99,38 @@ No networking, no image loading, no Material Icons Extended (icons are vector dr
 ## 5. Feature Progress
 
 ### Feature: Charging alerts  (Design: Home → Charging card)
-- [ ] Domain models + use cases
-- [ ] Repository interface + implementation
-- [ ] Data sources (ChargingMonitor) + notifications
-- [ ] DI wiring
-- [ ] Components (one per file, previewed)
-- [ ] Screen, all states
-- [ ] ViewModel + UiState/Event/Effect
-- [ ] Edge cases (notifications blocked, channel blocked, service killed)
-- [ ] Tests
-- [ ] Builds clean, committed
+- [x] Domain models + use cases
+- [x] Repository interface + implementation
+- [x] Data sources (ChargingMonitor) + notifications
+- [x] DI wiring
+- [x] Components (one per file, previewed)
+- [x] Screen, all states
+- [x] ViewModel + UiState/Event/Effect
+- [x] Edge cases (notifications blocked, channel blocked, service killed)
+- [x] Tests
+- [x] Builds clean, committed
 
 ### Feature: Motion alarm  (Design: Home → Motion card, hero, alarm overlay)
-- [ ] MotionDetector + tests
-- [ ] MotionSensorSource, wake lock, arming countdown
-- [ ] AlarmPlayer (siren, vibration, alarm volume, audio focus) + Stop action
-- [ ] UI + sensitivity
-- [ ] Edge cases (no accelerometer, screen off, re-arm after stop)
-- [ ] Builds clean, committed
+- [x] MotionDetector + tests
+- [x] MotionSensorSource, wake lock, arming countdown
+- [ ] AlarmPlayer (siren, vibration, alarm volume, audio focus) + Stop action — built; **awaiting device gate**
+- [x] UI + sensitivity
+- [ ] Edge cases (no accelerometer, screen off, re-arm after stop) — **awaiting device gate**
+- [x] Builds clean, committed
 
 ### Feature: Clap detection  (Design: Home → Clap card)
-- [ ] ClapDetector + tests
-- [ ] MicrophoneSource, microphone service type, permission flow
-- [ ] UI + sensitivity
-- [ ] Edge cases (permission permanently denied, no mic, mic busy, restarted from background)
-- [ ] Builds clean, committed
+- [x] ClapDetector + tests
+- [x] MicrophoneSource, microphone service type, permission flow
+- [x] UI + sensitivity
+- [x] Permission permanently denied (verified on device) · [ ] mic busy / background restart — **awaiting device gate**
+- [x] Builds clean, committed
 
 ## 6. Screen ↔ Design Map
 
 | Screen | Orientation | Design ref | Implementation path | Status |
 |---|---|---|---|---|
-| Home | Any | `design/tokens.md` (no frames) | `presentation/home/HomeScreen.kt` | Not started |
-| Alarm | Any | `design/tokens.md` (no frames) | `presentation/alarm/AlarmScreen.kt` | Not started |
+| Home | Any | `design/tokens.md` (no frames) | `presentation/home/HomeScreen.kt` | Done; verified light, dark, landscape on API 31 |
+| Alarm | Any | `design/tokens.md` (no frames) | `presentation/alarm/AlarmScreen.kt` | Built; not yet seen on device (needs a real trigger) |
 
 ## 7. Data Model & API
 
@@ -146,8 +146,8 @@ Execution mode: **Hybrid**.
 |---|---|---|
 | 1 | Foundation | Done |
 | 2 | Data & domain layer | Done |
-| 3 | Protection engine — **gate** | In progress |
-| 4 | Home screen — **gate** (permissions) | Not started |
+| 3 | Protection engine — **gate** | Built; charging verified; **motion/clap alarm awaiting human check** |
+| 4 | Home + Alarm screens, Navigation 3 — **gate** (permissions) | Done; permission gate verified on API 31 |
 | 5 | Integration | Not started |
 | 6 | QA | Not started |
 
@@ -175,6 +175,11 @@ Approved at intake (user: "go with your defaults and test on connected device"):
   do not, but ask once so the alarm's Stop action can appear on the lock screen.
 
 ## 10. Known Gaps / TODO
+
+- Motion and clap alarms, the Alarm screen, the notification Stop action and screen-off
+  behaviour need a human with the phone (gate after milestone 3).
+- Lint: 4 "newer version available" warnings (Compose BOM, Kotlin, serialization) left on
+  purpose — guidelines §5.19 forbid opportunistic upgrades.
 
 - API 24–30 and 32–37 not run on a device or emulator yet (only API 31 hardware connected).
 

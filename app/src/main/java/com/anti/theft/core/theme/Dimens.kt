@@ -13,6 +13,7 @@ object Dimens {
     val Space4xl = 48.dp
 
     val Border = 1.dp
+    val StatusDot = 6.dp
     val IconS = 18.dp
     val IconM = 24.dp
     val IconBadge = 44.dp

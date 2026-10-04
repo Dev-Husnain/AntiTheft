@@ -17,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +45,12 @@ fun InlineNotice(
         NoticeTone.Info -> MaterialTheme.colorScheme.primary
         NoticeTone.Warning -> ColorFBBF
         NoticeTone.Error -> MaterialTheme.colorScheme.error
+    }
+    // Amber text is unreadable on light surfaces, so warnings use on-surface text there.
+    val actionColor = if (tone == NoticeTone.Warning && MaterialTheme.colorScheme.surface.luminance() > 0.5f) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        accent
     }
     val shape = MaterialTheme.shapes.small
     Row(
@@ -79,7 +86,7 @@ fun InlineNotice(
                     onClick = onAction,
                     modifier = Modifier.align(Alignment.Start),
                 ) {
-                    Text(text = it, style = MaterialTheme.typography.labelLarge, color = accent)
+                    Text(text = it, style = MaterialTheme.typography.labelLarge, color = actionColor)
                 }
             }
         }

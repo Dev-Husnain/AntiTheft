@@ -57,6 +57,7 @@
     <string name="action_allow">Allow</string>
     <string name="action_open_settings">Open settings</string>
     <string name="action_turn_on">Turn on</string>
+    <string name="action_retry">Try again</string>
 
     <!-- Notifications banner -->
     <string name="banner_notifications_title">Notifications are off</string>

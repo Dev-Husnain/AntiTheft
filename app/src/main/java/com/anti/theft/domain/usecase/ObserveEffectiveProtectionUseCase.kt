@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
-/** Which guards can actually run: switched on, permitted and supported by the hardware. */
+/**
+ * Which guards can actually run. Permissions are read when settings change; a revoked
+ * runtime permission kills the process, so a stale "granted" can't outlive it.
+ */
 class ObserveEffectiveProtectionUseCase(
     private val settings: SettingsRepository,
     private val permissions: PermissionRepository,
@@ -17,13 +20,11 @@ class ObserveEffectiveProtectionUseCase(
 ) {
     operator fun invoke(): Flow<EffectiveProtectionModel> = settings.settings
         .map { s ->
-            val device = capabilities.capabilities()
-            EffectiveProtectionModel(
-                charging = s.chargingEnabled && permissions.isGranted(AppPermission.NOTIFICATIONS),
-                motion = s.motionEnabled && device.hasAccelerometer,
-                clap = s.clapEnabled && device.hasMicrophone && permissions.isGranted(AppPermission.MICROPHONE),
-                motionSensitivity = s.motionSensitivity,
-                clapSensitivity = s.clapSensitivity,
+            EffectiveProtectionModel.from(
+                settings = s,
+                device = capabilities.capabilities(),
+                notificationsGranted = permissions.isGranted(AppPermission.NOTIFICATIONS),
+                microphoneGranted = permissions.isGranted(AppPermission.MICROPHONE),
             )
         }
         .distinctUntilChanged()
