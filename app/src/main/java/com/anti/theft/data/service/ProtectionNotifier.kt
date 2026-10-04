@@ -51,6 +51,7 @@ class ProtectionNotifier(private val context: Context) {
                 if (it.charging) add(context.getString(R.string.feature_charging_title))
                 if (it.motion) add(context.getString(R.string.feature_motion_title))
                 if (it.clap) add(context.getString(R.string.feature_clap_title))
+                if (it.pocket) add(context.getString(R.string.feature_pocket_title))
             }.joinToString(context.getString(R.string.notif_feature_separator))
         }
         return NotificationCompat.Builder(context, NotificationChannels.PROTECTION)
@@ -95,6 +96,7 @@ class ProtectionNotifier(private val context: Context) {
         val reason = when (trigger) {
             AlarmTrigger.MOTION -> R.string.alarm_reason_motion
             AlarmTrigger.CLAP -> R.string.alarm_reason_clap
+            AlarmTrigger.POCKET -> R.string.alarm_reason_pocket
         }
         val stopIntent = PendingIntent.getService(
             context,

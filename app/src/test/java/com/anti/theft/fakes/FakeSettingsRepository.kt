@@ -22,6 +22,7 @@ class FakeSettingsRepository(
                 ProtectionFeature.CHARGING -> it.copy(chargingEnabled = enabled)
                 ProtectionFeature.MOTION -> it.copy(motionEnabled = enabled)
                 ProtectionFeature.CLAP -> it.copy(clapEnabled = enabled)
+                ProtectionFeature.POCKET -> it.copy(pocketEnabled = enabled)
             }
         }
     }
@@ -31,7 +32,7 @@ class FakeSettingsRepository(
             when (feature) {
                 ProtectionFeature.MOTION -> it.copy(motionSensitivity = sensitivity)
                 ProtectionFeature.CLAP -> it.copy(clapSensitivity = sensitivity)
-                ProtectionFeature.CHARGING -> it
+                ProtectionFeature.CHARGING, ProtectionFeature.POCKET -> it
             }
         }
     }

@@ -67,6 +67,7 @@ fun AlarmHeadline(
                     when (it) {
                         AlarmTrigger.MOTION -> R.string.alarm_reason_motion
                         AlarmTrigger.CLAP -> R.string.alarm_reason_clap
+                        AlarmTrigger.POCKET -> R.string.alarm_reason_pocket
                     },
                 ),
                 style = MaterialTheme.typography.titleMedium,
@@ -80,6 +81,7 @@ fun AlarmHeadline(
                     when (it) {
                         AlarmTrigger.MOTION -> R.string.alarm_body_motion
                         AlarmTrigger.CLAP -> R.string.alarm_body_clap
+                        AlarmTrigger.POCKET -> R.string.alarm_body_pocket
                     },
                 ),
                 style = MaterialTheme.typography.bodyMedium,

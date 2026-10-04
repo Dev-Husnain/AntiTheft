@@ -75,6 +75,7 @@ fun ProtectionStatusHero(
             when (hero.trigger) {
                 AlarmTrigger.MOTION -> R.string.alarm_reason_motion
                 AlarmTrigger.CLAP -> R.string.alarm_reason_clap
+                AlarmTrigger.POCKET -> R.string.alarm_reason_pocket
             },
         )
     }

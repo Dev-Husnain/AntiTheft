@@ -3,7 +3,9 @@ package com.anti.theft.presentation.home
 import androidx.lifecycle.SavedStateHandle
 import com.anti.theft.domain.models.AlarmTrigger
 import com.anti.theft.domain.models.AppPermission
+import com.anti.theft.R
 import com.anti.theft.domain.models.MotionState
+import com.anti.theft.domain.models.PocketState
 import com.anti.theft.domain.models.ProtectionFeature
 import com.anti.theft.domain.usecase.ObserveEffectiveProtectionUseCase
 import com.anti.theft.domain.usecase.ResolvePermissionStatusUseCase
@@ -179,5 +181,39 @@ class HomeViewModelTest {
 
         assertEquals(HeroUiModel.Paused, state.hero)
         assertTrue(effects.last() is HomeEffect.ShowMessage)
+    }
+
+    @Test
+    fun `pocket mode needs no permission and shows its live state`() {
+        viewModel.onEvent(HomeEvent.OnFeatureToggled(ProtectionFeature.POCKET, true))
+
+        assertTrue(card(ProtectionFeature.POCKET).checked)
+        assertTrue(protection.applied.last().pocket)
+
+        protection.status.value = protection.status.value.copy(serviceRunning = true, pocket = PocketState.WaitingForPocket)
+        assertEquals(R.string.status_waiting_pocket, card(ProtectionFeature.POCKET).status?.labelRes)
+
+        protection.status.value = protection.status.value.copy(pocket = PocketState.Armed)
+        assertEquals(R.string.status_armed, card(ProtectionFeature.POCKET).status?.labelRes)
+    }
+
+    @Test
+    fun `motion shows paused while the phone is in a pocket`() {
+        viewModel.onEvent(HomeEvent.OnFeatureToggled(ProtectionFeature.MOTION, true))
+
+        protection.status.value = protection.status.value.copy(serviceRunning = true, motion = MotionState.PausedInPocket)
+
+        assertEquals(R.string.status_paused_pocket, card(ProtectionFeature.MOTION).status?.labelRes)
+        assertEquals(HeroUiModel.Protected(1), state.hero)
+    }
+
+    @Test
+    fun `pocket mode is unavailable without a proximity sensor`() {
+        capabilities.model = capabilities.model.copy(hasProximity = false)
+        val withoutProximity = createViewModel().apply { onEvent(HomeEvent.OnResumed(emptyMap())) }
+
+        val pocket = withoutProximity.homeUiState.value.features.first { it.feature == ProtectionFeature.POCKET }
+        assertFalse(pocket.available)
+        assertEquals(R.string.notice_no_proximity, pocket.notice?.messageRes)
     }
 }

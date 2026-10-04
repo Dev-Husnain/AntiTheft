@@ -31,6 +31,7 @@ class SettingsRepositoryImpl(
                 chargingEnabled = p[CHARGING_ENABLED] ?: false,
                 motionEnabled = p[MOTION_ENABLED] ?: false,
                 clapEnabled = p[CLAP_ENABLED] ?: false,
+                pocketEnabled = p[POCKET_ENABLED] ?: false,
                 motionSensitivity = p[MOTION_SENSITIVITY].toSensitivity(),
                 clapSensitivity = p[CLAP_SENSITIVITY].toSensitivity(),
             )
@@ -50,6 +51,7 @@ class SettingsRepositoryImpl(
             ProtectionFeature.CHARGING -> CHARGING_ENABLED
             ProtectionFeature.MOTION -> MOTION_ENABLED
             ProtectionFeature.CLAP -> CLAP_ENABLED
+            ProtectionFeature.POCKET -> POCKET_ENABLED
         }
         dataStore.edit { it[key] = enabled }
     }
@@ -58,7 +60,7 @@ class SettingsRepositoryImpl(
         val key = when (feature) {
             ProtectionFeature.MOTION -> MOTION_SENSITIVITY
             ProtectionFeature.CLAP -> CLAP_SENSITIVITY
-            ProtectionFeature.CHARGING -> return
+            ProtectionFeature.CHARGING, ProtectionFeature.POCKET -> return
         }
         dataStore.edit { it[key] = sensitivity.name }
     }
@@ -81,6 +83,7 @@ class SettingsRepositoryImpl(
         val CHARGING_ENABLED = booleanPreferencesKey("charging_enabled")
         val MOTION_ENABLED = booleanPreferencesKey("motion_enabled")
         val CLAP_ENABLED = booleanPreferencesKey("clap_enabled")
+        val POCKET_ENABLED = booleanPreferencesKey("pocket_enabled")
         val MOTION_SENSITIVITY = stringPreferencesKey("motion_sensitivity")
         val CLAP_SENSITIVITY = stringPreferencesKey("clap_sensitivity")
         val BATTERY_TIP_DISMISSED = booleanPreferencesKey("battery_tip_dismissed")

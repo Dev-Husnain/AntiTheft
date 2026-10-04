@@ -11,6 +11,7 @@ import com.anti.theft.domain.models.EffectiveProtectionModel
 import com.anti.theft.domain.models.MotionState
 import com.anti.theft.domain.models.PermissionStateModel
 import com.anti.theft.domain.models.PermissionStatus
+import com.anti.theft.domain.models.PocketState
 import com.anti.theft.domain.models.ProtectionFeature
 import com.anti.theft.domain.models.ProtectionSettingsModel
 import com.anti.theft.domain.models.ProtectionStatusModel
@@ -235,7 +236,8 @@ class HomeViewModel(
             effective.anyActive -> HeroUiModel.Protected(effective.activeCount)
             else -> HeroUiModel.Off
         }
-        val anyEnabled = settings.chargingEnabled || settings.motionEnabled || settings.clapEnabled
+        val anyEnabled = settings.chargingEnabled || settings.motionEnabled || settings.clapEnabled ||
+            settings.pocketEnabled
         return HomeUiState(
             isLoading = false,
             hero = hero,
@@ -243,6 +245,7 @@ class HomeViewModel(
                 chargingCard(settings, effective, status, permissions),
                 motionCard(settings, effective, status, permissions, device.hasAccelerometer),
                 clapCard(settings, effective, status, permissions, device.hasMicrophone),
+                pocketCard(effective, status, device.supports(ProtectionFeature.POCKET)),
             ),
             showNotificationsBanner = permissions.notifications == PermissionStatus.DENIED ||
                 permissions.notifications == PermissionStatus.PERMANENTLY_DENIED,
@@ -299,6 +302,7 @@ class HomeViewModel(
         status = when (val motion = status.motion) {
             is MotionState.Arming -> FeatureStatusUiModel(R.string.status_arming, motion.secondsLeft, StatusTone.Pending)
             MotionState.Armed -> FeatureStatusUiModel(R.string.status_armed, tone = StatusTone.Active)
+            MotionState.PausedInPocket -> FeatureStatusUiModel(R.string.status_paused_pocket, tone = StatusTone.Pending)
             MotionState.Off -> null
         },
         sensitivity = settings.motionSensitivity,
@@ -310,6 +314,8 @@ class HomeViewModel(
                 actionRes = R.string.action_open_settings,
                 action = NoticeAction.OPEN_NOTIFICATION_SETTINGS,
             )
+            effective.motion && status.motion == MotionState.PausedInPocket ->
+                FeatureNoticeUiModel(R.string.notice_motion_pocket, NoticeTone.Info)
             effective.motion -> FeatureNoticeUiModel(R.string.notice_motion_battery, NoticeTone.Info)
             else -> null
         },
@@ -349,6 +355,30 @@ class HomeViewModel(
                 actionRes = R.string.action_retry,
                 action = NoticeAction.RETRY,
             )
+            else -> null
+        },
+    )
+
+    private fun pocketCard(
+        effective: EffectiveProtectionModel,
+        status: ProtectionStatusModel,
+        supported: Boolean,
+    ) = FeatureUiModel(
+        feature = ProtectionFeature.POCKET,
+        iconRes = R.drawable.ic_front_hand,
+        titleRes = R.string.feature_pocket_title,
+        descriptionRes = R.string.feature_pocket_body,
+        checked = effective.pocket,
+        available = supported,
+        status = when (val pocket = status.pocket) {
+            PocketState.WaitingForPocket -> FeatureStatusUiModel(R.string.status_waiting_pocket, tone = StatusTone.Pending)
+            is PocketState.Arming -> FeatureStatusUiModel(R.string.status_arming, pocket.secondsLeft, StatusTone.Pending)
+            PocketState.Armed -> FeatureStatusUiModel(R.string.status_armed, tone = StatusTone.Active)
+            PocketState.Off -> null
+        },
+        notice = when {
+            !supported -> FeatureNoticeUiModel(R.string.notice_no_proximity, NoticeTone.Info)
+            effective.pocket -> FeatureNoticeUiModel(R.string.notice_pocket_info, NoticeTone.Info)
             else -> null
         },
     )

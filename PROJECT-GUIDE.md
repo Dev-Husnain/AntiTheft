@@ -7,6 +7,8 @@ A single-screen Android app that guards the phone in the background:
 - **Charging alerts** — notifies "Charger Connected" / "Charger Disconnected".
 - **Motion alarm** — when the phone is moved or picked up, plays a loud looping siren with a
   Stop button (in-app and on the notification).
+- **Pocket mode** (added at the user's request) — arms once the phone is in a pocket and
+  rings when someone pulls it out.
 - **Clap detection** (bonus) — listens through the microphone and triggers the same alarm.
 
 Each feature has an on/off switch; motion and clap also have Low / Medium / High sensitivity.
@@ -209,6 +211,12 @@ Approved at intake (user: "go with your defaults and test on connected device"):
   decay to 30 % within 120 ms. Audio source is UNPROCESSED where supported, else
   VOICE_RECOGNITION (no AGC). Unit tests cover claps, speech, a shout, a plosive, a thud and
   music; an ablation showed the spectral check is what rejects speech and thuds.
+- Pocket mode (user-approved scope addition): "in a pocket" = proximity covered **and** not
+  lying flat (gravity < 25° from the screen axis), so a phone face-down on a desk is not a
+  pocket. Arms after 3 s in a pocket; rings after 1 s uncovered (brief fabric shifts ignored).
+  The owner stops it with Stop like any alarm. Motion alarm cannot *arm* while in a pocket
+  (shows "Paused in pocket"), but an already-armed motion alarm is never paused, so covering
+  the sensor while lifting the phone can't defeat it. Each guard holds its own wake lock.
 - Motion detection holds a partial wake lock while armed so the accelerometer keeps
   reporting with the screen off.
 - Motion arms only after the phone has been continuously still for 5 s (StillnessTracker:

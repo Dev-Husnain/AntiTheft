@@ -5,5 +5,6 @@ data class ProtectionStatusModel(
     val chargingWatching: Boolean = false,
     val motion: MotionState = MotionState.Off,
     val clap: ClapState = ClapState.OFF,
+    val pocket: PocketState = PocketState.Off,
     val ringing: AlarmTrigger? = null,
 )

@@ -36,4 +36,5 @@ fun ProtectionFeature.requiredPermission(): AppPermission? = when (this) {
     ProtectionFeature.CHARGING -> AppPermission.NOTIFICATIONS
     ProtectionFeature.MOTION -> null
     ProtectionFeature.CLAP -> AppPermission.MICROPHONE
+    ProtectionFeature.POCKET -> null
 }

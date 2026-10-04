@@ -7,6 +7,7 @@ class FakeDeviceCapabilitiesRepository(
     var model: DeviceCapabilitiesModel = DeviceCapabilitiesModel(
         hasAccelerometer = true,
         hasMicrophone = true,
+        hasProximity = true,
         restrictiveManufacturer = null,
     ),
 ) : DeviceCapabilitiesRepository {

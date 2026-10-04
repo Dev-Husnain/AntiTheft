@@ -25,6 +25,8 @@
     <string name="feature_motion_title">Motion alarm</string>
     <string name="feature_motion_body">Sounds a loud alarm if someone picks up or moves your phone.</string>
     <string name="feature_clap_title">Clap detection</string>
+    <string name="feature_pocket_title">Pocket mode</string>
+    <string name="feature_pocket_body">Rings if someone pulls your phone out of your pocket. Arms a few seconds after it goes in.</string>
     <string name="feature_clap_body">Clap and the alarm rings. Handy for finding your phone.</string>
 
     <string name="status_watching">Watching</string>
@@ -32,6 +34,8 @@
     <string name="status_arming">Arming in %1$d s</string>
     <string name="status_listening">Listening</string>
     <string name="status_paused">Paused</string>
+    <string name="status_paused_pocket">Paused in pocket</string>
+    <string name="status_waiting_pocket">Waiting for pocket</string>
 
     <string name="sensitivity_label">Sensitivity</string>
     <string name="sensitivity_low">Low</string>
@@ -48,6 +52,9 @@
     <string name="notice_mic_unavailable">The microphone is busy or unavailable. Clap detection will retry when you reopen the app.</string>
     <string name="notice_no_accelerometer">This device has no motion sensor.</string>
     <string name="notice_no_microphone">This device has no microphone.</string>
+    <string name="notice_no_proximity">This device has no proximity sensor.</string>
+    <string name="notice_pocket_info">Taking your phone out yourself will ring the alarm too. Stop it with the Stop button.</string>
+    <string name="notice_motion_pocket">Motion alarm waits while your phone is in a pocket. Use Pocket mode for that.</string>
     <string name="notice_motion_battery">Keeps the motion sensor awake while armed, which uses a little extra battery.</string>
 
     <string name="action_allow">Allow</string>
@@ -75,7 +82,9 @@
     <string name="alarm_title">Alarm triggered</string>
     <string name="alarm_reason_motion">Motion detected</string>
     <string name="alarm_reason_clap">Clap detected</string>
+    <string name="alarm_reason_pocket">Removed from pocket</string>
     <string name="alarm_body_motion">Your phone was moved while the motion alarm was on.</string>
+    <string name="alarm_body_pocket">Your phone was taken out of a pocket while pocket mode was on.</string>
     <string name="alarm_body_clap">A clap was heard while clap detection was on.</string>
     <string name="alarm_stop">Stop alarm</string>
 
