@@ -26,7 +26,7 @@ Rules: `CLAUDE-CODE-GUIDELINES.md`. Single `:app` module, package `com.anti.thef
 
 ```
 App.kt                      Application: starts Koin, creates notification channels
-MainActivity.kt             enableEdgeToEdge + AppTheme { HomeScreen() }  (no navigation library)
+MainActivity.kt             enableEdgeToEdge + AppTheme { AppNavHost() } — hosts the nav graph only
 di/                         appModule (dispatchers, DataStore, repositories, service helpers)
                             homeModule (use cases, HomeViewModel)
 domain/
@@ -42,7 +42,9 @@ data/
                             AlarmPlayer, ProtectionNotifier, ServiceTypes
 presentation/home/          HomeScreen, HomeViewModel, HomeUiState, HomeEvent, HomeEffect,
                             components/
+presentation/alarm/         AlarmScreen, AlarmViewModel, AlarmUiState, AlarmEvent, components/
 core/
+    navigation/             Route (sealed NavKey), AppNavHost (Navigation 3)
     theme/                  Color, Type, Shape, Dimens, Theme
     ui/                     app-wide components (GradientBackground, PrimaryButton, …)
     utils/                  extension functions (settings intents, permission helpers)
@@ -65,8 +67,17 @@ after every permission result, so the UI updates after the user changes settings
 `onEvent(HomeEvent)`; one-shot work (launch a permission request, open settings, snackbar)
 via `HomeEffect` on a `Channel`.
 
-**How to add a new screen.** No navigation library exists (single screen). Add Navigation 3
-with a sealed `Route` in `core/navigation/` first, then follow the `presentation/home/` slice.
+**Navigation.** Navigation 3: `Route.Home` and `Route.Alarm` in `core/navigation/Route.kt`;
+`AppNavHost` owns the back stack, pushes `Route.Alarm` when the service starts ringing (or the
+alarm notification is tapped) and pops it when the alarm stops. Screens expose callbacks only.
+
+**System bars.** `MainActivity` calls `enableEdgeToEdge()` and nothing else. Each screen owns
+its background and insets (`safeDrawing` padding applied once, on the screen's content) and
+declares its status-bar icon appearance through `SystemBarAppearance` (dark icons on the light
+theme, light icons on the dark theme and on the red alarm screen).
+
+**How to add a new screen.** Add a `Route` object, a `presentation/<feature>/` slice following
+`home/`, register its ViewModel in a Koin module, and add an `entry<Route.X>` in `AppNavHost`.
 
 ## 4. Tech Stack & Dependencies
 
@@ -79,6 +90,9 @@ with a sealed `Route` in `core/navigation/` first, then follow the `presentation
 | DataStore Preferences | 1.2.1 | **New.** Switches, sensitivity, permission-requested flags |
 | lifecycle-runtime-compose / viewmodel-compose | 2.11.0 | **New.** `collectAsStateWithLifecycle`, ViewModel |
 | kotlinx-coroutines-test | 1.11.0 | **New.** Unit tests |
+| Navigation 3 (runtime, ui) | 1.2.0 | **New.** Navigation (user requirement) |
+| lifecycle-viewmodel-navigation3 | 2.11.0 | **New.** Per-entry ViewModel scoping |
+| kotlinx-serialization-core + plugin | 1.10.0 / Kotlin 2.2.10 | **New.** `@Serializable` NavKeys for `rememberNavBackStack` |
 
 No networking, no image loading, no Material Icons Extended (icons are vector drawables).
 
@@ -116,6 +130,7 @@ No networking, no image loading, no Material Icons Extended (icons are vector dr
 | Screen | Orientation | Design ref | Implementation path | Status |
 |---|---|---|---|---|
 | Home | Any | `design/tokens.md` (no frames) | `presentation/home/HomeScreen.kt` | Not started |
+| Alarm | Any | `design/tokens.md` (no frames) | `presentation/alarm/AlarmScreen.kt` | Not started |
 
 ## 7. Data Model & API
 
@@ -130,8 +145,8 @@ Execution mode: **Hybrid**.
 | # | Milestone | Status |
 |---|---|---|
 | 1 | Foundation | Done |
-| 2 | Data & domain layer | In progress |
-| 3 | Protection engine — **gate** | Not started |
+| 2 | Data & domain layer | Done |
+| 3 | Protection engine — **gate** | In progress |
 | 4 | Home screen — **gate** (permissions) | Not started |
 | 5 | Integration | Not started |
 | 6 | QA | Not started |
@@ -142,8 +157,8 @@ Approved at intake (user: "go with your defaults and test on connected device"):
 
 - Hybrid execution mode; dark + light themes following the system; Manrope bundled.
 - Low / Medium / High sensitivity for motion and clap. No PIN to stop. No restart on boot.
-- No navigation library for a single screen (deviation from the Navigation 3 default, §5.7,
-  justified by §5.1 "don't scaffold what the project has no use for").
+- ~~No navigation library~~ — **reversed by the user on 2026-10-04**: use Navigation 3, no
+  condition-based screen switching. The alarm is its own `Route.Alarm` destination.
 - Bundled synthesised siren (fallback: system default alarm tone); alarm stream raised to max
   while ringing and restored on stop.
 - Testing on the connected Xiaomi M2101K7AG (Redmi Note 10, API 31, MIUI).
