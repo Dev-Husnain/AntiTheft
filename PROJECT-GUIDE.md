@@ -213,8 +213,13 @@ Approved at intake (user: "go with your defaults and test on connected device"):
   music; an ablation showed the spectral check is what rejects speech and thuds.
 - Pocket mode (user-approved scope addition): "in a pocket" = (proximity near **or** ambient
   light ≤ 5 lux) **and** not lying flat (gravity < 25° from the screen axis), so a phone
-  face-down on a desk is not a pocket. Arms after 3 s in a pocket; rings after 1 s "out"
-  (proximity far, or light ≥ max(20 lux, 8× the in-pocket level)); brief fabric shifts ignored.
+  face-down on a desk is not a pocket. Arms after 3 s in a pocket; rings after 1.5 s
+  continuously "out" (proximity far, or light ≥ max(50 lux, 6× the in-pocket level)). While
+  armed the in-pocket level adapts to steady leaks (EMA of readings below the threshold), and
+  step-by-step flicker keeps resetting the timer. Thresholds raised from 20 lux / 1 s after a
+  user-reported false alarm while walking; a regression test reproduces it with the old values.
+  For the motion alarm, "in a pocket" is sticky (the pocket state machine's Arming/Armed
+  phases), so a brief leak can't let motion arm inside a pocket.
   Proximity is trusted only after it has reported "near" once: the user's Xiaomi has an
   ultrasound "Elliptic" proximity sensor that never reports to apps outside calls (verified in
   `dumpsys sensorservice`: one "far" reading, then silence), so it works on light alone there.

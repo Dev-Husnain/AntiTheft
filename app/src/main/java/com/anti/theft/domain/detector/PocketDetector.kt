@@ -8,7 +8,7 @@ import kotlin.math.sqrt
 
 class PocketDetector(
     private val armMillis: Long = 3_000,
-    private val triggerMillis: Long = 1_000,
+    private val triggerMillis: Long = 1_500,
 ) {
     private val gravity = FloatArray(3)
     private var hasGravity = false
@@ -34,6 +34,9 @@ class PocketDetector(
 
     fun onLight(lux: Float, timestampNanos: Long): PocketPhase {
         this.lux = lux
+        if (armed && !triggered && lux < outLuxThreshold()) {
+            pocketLux += (lux - pocketLux) * BASELINE_RATE
+        }
         return evaluate(timestampNanos)
     }
 
@@ -47,6 +50,14 @@ class PocketDetector(
             gravity[2] = ALPHA * gravity[2] + (1 - ALPHA) * z
         }
         return evaluate(timestampNanos)
+    }
+
+    fun reset() {
+        pocketSinceNanos = null
+        outSinceNanos = null
+        pocketLux = 0f
+        armed = false
+        triggered = false
     }
 
     private fun evaluate(now: Long): PocketPhase {
@@ -82,9 +93,11 @@ class PocketDetector(
 
     private fun lightSaysDark() = lux?.let { it <= DARK_LUX } == true
 
+    private fun outLuxThreshold() = max(MIN_OUT_LUX, pocketLux * OUT_LUX_FACTOR)
+
     private fun takenOut(): Boolean {
         val proximityOut = proximityProvenWorking && proximityNear == false
-        val lightOut = lux?.let { it >= max(MIN_OUT_LUX, pocketLux * OUT_LUX_FACTOR) } == true
+        val lightOut = lux?.let { it >= outLuxThreshold() } == true
         return proximityOut || lightOut
     }
 
@@ -99,8 +112,9 @@ class PocketDetector(
         const val NANOS_PER_MILLI = 1_000_000L
         const val MIN_GRAVITY_NORM = 1f
         const val DARK_LUX = 5f
-        const val MIN_OUT_LUX = 20f
-        const val OUT_LUX_FACTOR = 8f
+        const val MIN_OUT_LUX = 50f
+        const val OUT_LUX_FACTOR = 6f
+        const val BASELINE_RATE = 0.1f
         val FLAT_COS = cos(25.0 * PI / 180.0).toFloat()
     }
 }

@@ -260,14 +260,20 @@ class ProtectionService : Service() {
 
     private suspend fun trackPocketPresence() = withContext(dispatchers.default) {
         val detector = PocketDetector()
-        merge(motionSource.samples(), proximitySource.samples(), lightSource.samples()).collect { sample ->
-            when (sample) {
-                is MotionSampleModel -> detector.onAcceleration(sample.x, sample.y, sample.z, sample.timestampNanos)
-                is ProximitySampleModel -> detector.onProximity(sample.covered, sample.timestampNanos)
-                is LightSampleModel -> detector.onLight(sample.lux, sample.timestampNanos)
-            }
-            inPocket.value = detector.inPocket
+        pocketSamples().collect { sample ->
+            val phase = detector.feed(sample) ?: return@collect
+            if (phase == PocketPhase.Triggered) detector.reset()
+            inPocket.value = phase is PocketPhase.Arming || phase == PocketPhase.Armed
         }
+    }
+
+    private fun pocketSamples() = merge(motionSource.samples(), proximitySource.samples(), lightSource.samples())
+
+    private fun PocketDetector.feed(sample: Any): PocketPhase? = when (sample) {
+        is MotionSampleModel -> onAcceleration(sample.x, sample.y, sample.z, sample.timestampNanos)
+        is ProximitySampleModel -> onProximity(sample.covered, sample.timestampNanos)
+        is LightSampleModel -> onLight(sample.lux, sample.timestampNanos)
+        else -> null
     }
 
     private suspend fun watchPocket() = holdingWakeLock(POCKET_WAKE_LOCK_TAG) {
@@ -275,13 +281,8 @@ class ProtectionService : Service() {
         var shown: PocketState = PocketState.WaitingForPocket
         stateHolder.update { it.copy(pocket = shown) }
         withContext(dispatchers.default) {
-            merge(motionSource.samples(), proximitySource.samples(), lightSource.samples()).first { sample ->
-                val phase = when (sample) {
-                    is MotionSampleModel -> detector.onAcceleration(sample.x, sample.y, sample.z, sample.timestampNanos)
-                    is ProximitySampleModel -> detector.onProximity(sample.covered, sample.timestampNanos)
-                    is LightSampleModel -> detector.onLight(sample.lux, sample.timestampNanos)
-                    else -> return@first false
-                }
+            pocketSamples().first { sample ->
+                val phase = detector.feed(sample) ?: return@first false
                 val state = when (phase) {
                     PocketPhase.WaitingForPocket -> PocketState.WaitingForPocket
                     is PocketPhase.Arming -> PocketState.Arming(((phase.millisLeft + 999) / 1_000).toInt())

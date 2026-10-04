@@ -70,7 +70,7 @@ class PocketDetectorTest {
 
         detector.light(180f)
 
-        assertEquals(PocketPhase.Triggered, detector.hold(1.2).last())
+        assertEquals(PocketPhase.Triggered, detector.hold(1.6).last())
     }
 
     @Test
@@ -109,12 +109,12 @@ class PocketDetectorTest {
     }
 
     @Test
-    fun `pulling the phone out triggers after one second`() {
+    fun `pulling the phone out triggers after one and a half seconds`() {
         val detector = armedWithWorkingProximity()
         detector.near(false)
         detector.light(300f)
 
-        val phases = detector.hold(1.2)
+        val phases = detector.hold(1.6)
 
         assertEquals(PocketPhase.Armed, phases.first())
         assertEquals(PocketPhase.Triggered, phases.last())
@@ -144,7 +144,7 @@ class PocketDetectorTest {
 
         detector.near(false)
         detector.light(800f)
-        assertEquals(PocketPhase.Triggered, detector.hold(1.2).last())
+        assertEquals(PocketPhase.Triggered, detector.hold(1.6).last())
     }
 
     @Test
@@ -157,10 +157,59 @@ class PocketDetectorTest {
         val detector = armedWithWorkingProximity()
         detector.near(false)
         detector.light(300f)
-        detector.hold(1.2)
+        detector.hold(1.6)
         detector.near(true)
         detector.light(0f)
 
         assertEquals(PocketPhase.Triggered, detector.hold(0.1).last())
+    }
+
+    @Test
+    fun `light flickering into the pocket while walking does not trigger`() {
+        val detector = armedWithStuckProximity()
+
+        val phases = (1..40).flatMap { step ->
+            detector.light(if (step % 2 == 0) 160f else 2f)
+            detector.hold(0.4)
+        }
+
+        assertTrue(phases.all { it == PocketPhase.Armed })
+    }
+
+    @Test
+    fun `a dim leak at the pocket opening for a few seconds does not trigger`() {
+        val detector = armedWithStuckProximity()
+
+        detector.light(35f)
+
+        assertTrue(detector.hold(4.0).all { it == PocketPhase.Armed })
+    }
+
+    @Test
+    fun `a steady moderate leak raises the bar instead of triggering`() {
+        val detector = armedWithStuckProximity()
+
+        repeat(60) {
+            detector.light(if (it % 2 == 0) 40f else 42f)
+            detector.hold(0.2)
+        }
+        detector.light(120f)
+        assertTrue(detector.hold(3.0).all { it == PocketPhase.Armed })
+
+        detector.light(900f)
+        assertEquals(PocketPhase.Triggered, detector.hold(1.6).last())
+    }
+
+    @Test
+    fun `reset keeps sensor readings and starts arming again`() {
+        val detector = armedWithStuckProximity()
+        detector.light(300f)
+        detector.hold(1.6)
+        detector.light(0f)
+
+        detector.reset()
+
+        assertTrue(detector.hold(1.0).last() is PocketPhase.Arming)
+        assertEquals(PocketPhase.Armed, detector.hold(2.5).last())
     }
 }
