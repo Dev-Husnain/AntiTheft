@@ -20,27 +20,31 @@ import com.anti.theft.domain.repo.SettingsRepository
 import com.anti.theft.domain.usecase.ObserveEffectiveProtectionUseCase
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val appModule = module {
+    // Not constructor injection: these are built from platform values and factories.
     single { AppDispatchers(main = Dispatchers.Main, default = Dispatchers.Default, io = Dispatchers.IO) }
     single {
         PreferenceDataStoreFactory.create(
             produceFile = { androidContext().preferencesDataStoreFile("settings") },
         )
     }
-    single { ProtectionStateHolder() }
 
-    single<SettingsRepository> { SettingsRepositoryImpl(get()) }
-    single<PermissionRepository> { PermissionRepositoryImpl(androidContext()) }
-    single<DeviceCapabilitiesRepository> { DeviceCapabilitiesRepositoryImpl(androidContext()) }
-    single<ProtectionRepository> { ProtectionRepositoryImpl(androidContext(), get()) }
+    singleOf(::ProtectionStateHolder)
+    singleOf(::SettingsRepositoryImpl) { bind<SettingsRepository>() }
+    singleOf(::PermissionRepositoryImpl) { bind<PermissionRepository>() }
+    singleOf(::DeviceCapabilitiesRepositoryImpl) { bind<DeviceCapabilitiesRepository>() }
+    singleOf(::ProtectionRepositoryImpl) { bind<ProtectionRepository>() }
 
     // Protection service collaborators.
-    single { ProtectionNotifier(androidContext()) }
-    factory { AlarmPlayer(androidContext()) }
-    factory { ChargingMonitor(androidContext()) }
-    factory { MotionSensorSource(androidContext()) }
-    factory { MicrophoneSource(androidContext(), get()) }
-    factory { ObserveEffectiveProtectionUseCase(get(), get(), get()) }
+    singleOf(::ProtectionNotifier)
+    factoryOf(::AlarmPlayer)
+    factoryOf(::ChargingMonitor)
+    factoryOf(::MotionSensorSource)
+    factoryOf(::MicrophoneSource)
+    factoryOf(::ObserveEffectiveProtectionUseCase)
 }
