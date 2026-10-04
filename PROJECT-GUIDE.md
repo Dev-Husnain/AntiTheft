@@ -162,7 +162,29 @@ Execution mode: **Hybrid**.
 | 4 | Home + Alarm screens, Navigation 3 — **gate** (permissions) | Done; permission gate verified on API 31 |
 | 5 | Integration | Done |
 
-| 6 | QA | Not started |
+| 6 | QA | Done (see matrix below) |
+
+### Verification matrix (2026-10-04)
+
+Devices: Xiaomi M2101K7AG / MIUI, API 31 (physical) · Pixel 9a emulator, API 36.
+
+| Check | Result |
+|---|---|
+| Assembles · unit tests (37) · lint (0 errors) | Verified |
+| App launches · Home ↔ Alarm navigation | Verified (Alarm screen confirmed by user) |
+| Charging alerts (connect / disconnect) | Verified API 31 + 36 |
+| Motion alarm · clap alarm | Verified by user, API 31 |
+| Screen-off motion · notification Stop action | Not explicitly confirmed |
+| Notification permission (API 33+ runtime flow) | Verified API 36 |
+| Mic permission: deny → deny again → permanent → Settings → auto-enable | Verified API 31 |
+| FGS types: specialUse 0x40000000, + microphone 0x40000080 | Verified API 36 |
+| Rapid toggle stress (no crash / ANR / orphan service) | Verified API 31 + 36 |
+| Crash → reopen restores protection | Verified API 31 (MIUI blocks automatic restart) |
+| Light / dark theme · status-bar icon contrast · landscape two-pane · 1.3× font | Verified API 31 |
+| Gesture navigation insets | Verified API 36 |
+| Process death during permission dialog | Unit-tested only |
+| API 24–30, 32–35, 37 | Not run (no SDK command-line tools to fetch those images) |
+| Tablet / foldable width | Two-pane layout verified via landscape phone only |
 
 ## 9. Decisions & Assumptions
 
