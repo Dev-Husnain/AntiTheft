@@ -203,6 +203,12 @@ Approved at intake (user: "go with your defaults and test on connected device"):
 - Foreground service type `specialUse` for charging + motion (no specific type fits sensor
   monitoring); `microphone` added only while clap detection runs. Google Play would require a
   `specialUse` justification.
+- Clap detection (revised after user report of false alarms on loud speech and a phone dropped
+  on a mattress): a candidate must be loud vs. the adaptive background **and** have a sharp
+  attack (≤ 6 ms) **and** ≥ 22/28/35 % of its energy above 2 kHz (High/Medium/Low) **and**
+  decay to 30 % within 120 ms. Audio source is UNPROCESSED where supported, else
+  VOICE_RECOGNITION (no AGC). Unit tests cover claps, speech, a shout, a plosive, a thud and
+  music; an ablation showed the spectral check is what rejects speech and thuds.
 - Motion detection holds a partial wake lock while armed so the accelerometer keeps
   reporting with the screen off.
 - A 5-second arming countdown follows enabling motion detection and stopping an alarm.

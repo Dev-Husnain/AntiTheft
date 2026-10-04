@@ -5,9 +5,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.AudioFormat
+import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import com.anti.theft.core.dispatchers.AppDispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +39,7 @@ class MicrophoneSource(
         if (minBuffer <= 0) throw MicrophoneUnavailableException("Unsupported audio format")
 
         val record = try {
-            AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNEL, ENCODING, max(minBuffer, FRAME_SIZE * 2 * 4))
+            AudioRecord(audioSource(), SAMPLE_RATE, CHANNEL, ENCODING, max(minBuffer, FRAME_SIZE * 2 * 4))
         } catch (e: SecurityException) {
             throw MicrophoneUnavailableException("Microphone access denied: ${e.message}")
         } catch (e: IllegalArgumentException) {
@@ -62,6 +64,18 @@ class MicrophoneSource(
             record.release()
         }
     }.flowOn(dispatchers.io)
+
+    /**
+     * A source without automatic gain control or noise suppression. The default MIC source
+     * often applies AGC, which squashes a shout and a clap to similar levels and smears the
+     * clap's attack. UNPROCESSED is flat to ~7 kHz where supported; VOICE_RECOGNITION is the
+     * guaranteed fallback (no AGC, flat to ~4 kHz).
+     */
+    private fun audioSource(): Int {
+        val unprocessed = context.getSystemService<AudioManager>()
+            ?.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED) == "true"
+        return if (unprocessed) MediaRecorder.AudioSource.UNPROCESSED else MediaRecorder.AudioSource.VOICE_RECOGNITION
+    }
 
     private companion object {
         const val SAMPLE_RATE = 16_000
